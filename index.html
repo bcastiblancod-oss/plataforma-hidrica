@@ -155,7 +155,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='lu'|
 pf('Administrador');
 const MAPIMG='mapa-evacuacion.png';
 
-// Backend publico: las direcciones de correo de trabajadores SOLO se guardan en Render.
 const API_URL='https://plataforma-hidrica-correo.onrender.com';
 const PO={'MED-001':[20,28],'MED-002':[18,68],'MED-003':[62,30],'MED-004':[44,62],'MED-005':[82,72]};
 const CZ=['Llave o grifo abierto','Fuga o daño real en tubería','Falla o descalibración del medidor','Uso programado o evento especial','Otro','Falso positivo (consumo normal)'];
@@ -173,7 +172,7 @@ if(mi&&a.e==='Asignada')ac=`<button class="b p" data-a="ini" data-id="${a.id}">I
 if(mi&&a.e==='En atención')ac=`<h2>Cerrar caso</h2><p style="color:var(--mu);margin:0">Para finalizar debes registrar qué ocurrió.</p><label for="cz">Causa del problema</label><select id="cz" style="width:100%"><option value="">Selecciona la causa…</option>${CZ.map(c=>`<option>${c}</option>`).join('')}</select><label for="cj">Justificación o detalle (obligatoria si es “Otro” o falso positivo)</label><textarea id="cj" rows="3"></textarea><p id="ce" role="alert" style="color:var(--wit);min-height:20px;margin:6px 0"></p><button class="b p" data-a="cerrar" data-id="${a.id}" style="width:100%">Confirmar solución y cerrar</button>`;
 if(!ac)ac=`<p style="color:var(--mu)">${S.rol==='Espectador'?'Tu rol es solo de consulta.':'No hay acciones disponibles en este estado para tu rol.'}</p>`;
 if(S.rol==='Administrador'&&a.t&&open(a))ac+=`<p><button class="b p" data-a="notificarWorker" data-id="${a.id}">Enviar notificacion a ${wk(a.t)}</button></p>`;
-$('#dr').innerHTML=`<button class="b" data-a="x" style="float:right">Cerrar</button><h2>Anomalía ${a.id}</h2><p>${pl(a.p)} ${es(a)}</p><p><b>${m.n}</b> (${m.id})<br><span style="color:var(--mu)">${m.z} · detectada ${F(a.at)}<br>Trabajador: ${wk(a.t)}${a.auto?' (asignación automática)':''}</span></p><div id="gc" data-id="${a.id}">${chart(m,a)}</div><div class="bn" style="margin-top:12px">La detección es estadística y puede generar falsos positivos.</div>${a.causa?`<p><b>Causa registrada:</b> ${a.causa}${a.just?`<br><span style="color:var(--mu)">${a.just}</span>`:''}</p>`:''}<label>Línea de tiempo</label>${['Detectada','Asignada','En atención','Resuelta'].map(s=>`<div class="tl"><span class="st ${a.h[s]?'ok':'mu'}">${s}</span><span style="color:var(--mu);font-size:13px">${a.h[s]?F(a.h[s]):'pendiente'}</span></div>`).join('')}<hr style="border:0;border-top:1px solid var(--ln);margin:16px 0">${ac}`;$('#dr').classList.add('o')}
+$('#dr').innerHTML=`<button class="b" data-a="x" style="float:right">Cerrar</button><h2>Anomalía ${a.id}</h2><p>${pl(a.p)} ${es(a)}</p><p><b>${m.n}</b> (${m.id})<br><span style="color:var(--mu)">${m.z} · detectada ${F(a.at)}<br>Trabajador: ${wk(a.t)}${a.auto?' (asignación automática)':''}</span></p><div id="gc" data-id="${a.id}">${chart(m,a)}</div>${a.causa?`<p><b>Causa registrada:</b> ${a.causa}${a.just?`<br><span style="color:var(--mu)">${a.just}</span>`:''}</p>`:''}<label>Línea de tiempo</label>${['Detectada','Asignada','En atención','Resuelta'].map(s=>`<div class="tl"><span class="st ${a.h[s]?'ok':'mu'}">${s}</span><span style="color:var(--mu);font-size:13px">${a.h[s]?F(a.h[s]):'pendiente'}</span></div>`).join('')}<hr style="border:0;border-top:1px solid var(--ln);margin:16px 0">${ac}`;$('#dr').classList.add('o')}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a="cerrar"]');if(!t)return;const x=an.find(z=>z.id==t.dataset.id),c=$('#cz').value,j=$('#cj').value.trim();
 if(!c){$('#ce').textContent='Debes indicar la causa del problema.';return}
 if((c==='Otro'||c.startsWith('Falso'))&&j.length<5){$('#ce').textContent='La justificación es obligatoria para esta causa.';return}
@@ -185,13 +184,9 @@ return `<button class="pin ${o.length?'al':''} ${x.id===S.mid?'sel':''}" data-a=
 return `<h1>Mapa</h1><div class="c"><div class="mp"><img src="${MAPIMG}" alt="Plano de la Manzana Académica entre la Calle 21, la Calle 22 y la Carrera 4">${pins}</div><div class="lgd"><span><i style="background:var(--wi)"></i>Anomalía alta</span><span><i style="background:var(--am)"></i>Media</span><span><i style="background:var(--ok)"></i>Baja o sin anomalías (✓)</span><span style="color:var(--mu)">El número indica las anomalías abiertas del medidor.</span></div></div>
 <div class="c"><h2>${m.n} · ${m.id}</h2><p>${m.z} · ${L(m.l)} L hoy · <span class="st ${m.f?'no':'ok'}">${m.f?'En falla':'Normal'}</span></p>${chart(m,la)}<h2 style="margin-top:14px">Anomalías abiertas</h2>${oa.length?tbl(oa):'<p style="color:var(--mu)">Sin anomalías abiertas: el consumo está dentro del rango normal.</p>'}</div>`};
 function bell(){const b=$('#bell');if(b)b.textContent=`Notificaciones (${S.un})`;const l=$('#nl');if(l)l.innerHTML=S.nt.slice(0,8).map(n=>`<p>${n.x}<br><small style="color:var(--mu)">${F(n.t)}${n.m?' · '+n.m:''}</small></p>`).join('')}
-function mstat(){
- const el=$('#ms');
- if(el)el.textContent='El correo del trabajador se configura de forma privada en Render. No se muestra en esta pagina. Las simulaciones se generan solo mientras esta pagina este abierta.';
-}
 function initMail(){
- $('#np').innerHTML=`<div id="nl"></div><div class="mail"><b>Enviar notificacion al trabajador</b><p class="cap">Selecciona el trabajador y la prioridad para simular una nueva anomalia. La direccion de correo permanece oculta.</p><label for="workerSelect">Trabajador destinatario</label><select id="workerSelect" style="width:100%">${tr.map(t=>`<option value="${t.id}">${t.n}</option>`).join('')}</select><label for="testPriority">Prioridad</label><select id="testPriority" style="width:100%"><option>Alta</option><option>Media</option><option>Baja</option></select><button class="b p" style="width:100%;margin-top:10px" data-a="testalert" id="testalert">Enviar notificacion a ${wk(tr[0].id)}</button><p id="ms" class="cap"></p></div>`;
- mstat();bell();
+ $('#np').innerHTML=`<div id="nl"></div><div class="mail"><b>Enviar notificacion al trabajador</b><label for="workerSelect">Trabajador destinatario</label><select id="workerSelect" style="width:100%">${tr.map(t=>`<option value="${t.id}">${t.n}</option>`).join('')}</select><label for="testPriority">Prioridad</label><select id="testPriority" style="width:100%"><option>Alta</option><option>Media</option><option>Baja</option></select><button class="b p" style="width:100%;margin-top:10px" data-a="testalert" id="testalert">Enviar notificacion a ${wk(tr[0].id)}</button></div>`;
+ bell();
 }
 function cambiarNombreBoton(){
  const btn=$('#testalert'),s=$('#workerSelect');
@@ -207,13 +202,12 @@ async function enviarAlTrabajador(a,aviso,esReintento=false){
  if(aviso){aviso.m=`Enviando notificacion a ${trabajador.n}...`;bell()}
  const datos={trabajador_id:trabajador.id,anomalia_id:a.id,medidor:a.m,ubicacion:mn(a.m).z,prioridad:a.p,estado:a.e};
  try{
-  // Render Free puede demorar en despertar despues de un periodo de inactividad.
   const r=await fetch(API_URL+'/notificar-trabajador',{
    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(datos)
   });
   const body=await r.json().catch(()=>({}));
   if(!r.ok){
-   if(aviso)aviso.m=`No se envio a ${trabajador.n} (HTTP ${r.status}). ${r.status===404?'Actualiza main.py en Render.':r.status===502?'Revisa Resend y los destinatarios.':'Revisa la configuracion de Render.'}`;
+   if(aviso)aviso.m=`No se pudo enviar la notificación a ${trabajador.n} (HTTP ${r.status}).`;
    bell();return false;
   }
   const texto=body.modo==='prueba'?`Notificacion para ${trabajador.n} enviada al buzon de pruebas`:`Notificacion enviada a ${trabajador.n}`;
@@ -222,7 +216,7 @@ async function enviarAlTrabajador(a,aviso,esReintento=false){
   toast(texto);
   return true;
  }catch(error){
-  if(aviso)aviso.m=`Sin conexion desde esta pagina. Revisa ALLOWED_ORIGIN (CORS), el acceso a Render y la consola del navegador.`;
+  if(aviso)aviso.m='No se pudo enviar la notificación.';
   bell();return false;
  }finally{enviosEnCurso.delete(clave)}
 }
@@ -243,7 +237,7 @@ function registrarAnomalia(m,p,trabajadorSeleccionado=null){
    void enviarAlTrabajador(a,aviso);
   }
  }else{
-  auto(a); // Los eventos aleatorios notifican al trabajador asignado automaticamente.
+  auto(a);
   if(!a.t)aviso.m='Pendiente: no hay trabajadores disponibles en este turno';
  }
  bell();return id;
@@ -281,7 +275,7 @@ function auto(a){
 }
 function autoAll(){let n=0;an.filter(a=>a.e==='Detectada'&&!a.t).forEach(a=>{n+=auto(a)});return n}
 setInterval(()=>{if(autoAll()&&S.user){if(S.v==='Anomalías')$('#tb').innerHTML=tb();else if(!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName))$('#v').innerHTML=V[S.v]();bell()}},3000);
-V.Trabajadores=()=>`<h1>Trabajadores</h1><p style="color:var(--mu);margin:-6px 0 14px">Las anomalías nuevas se asignan automáticamente al trabajador disponible con menos carga. El administrador controla quién está disponible y su turno.</p><div class="cg">${tr.map(t=>{const l=ld(t);return `<div class="c"><div style="display:flex;justify-content:space-between;gap:8px"><b>${t.n}</b><span class="st ${!t.on?'mu':av(t)?'ok':'no'}">${!t.on?'No disponible':av(t)?'Disponible ahora':'Fuera de turno'}</span></div><p style="color:var(--mu);margin:6px 0">Turno ${t.d}:00 a ${t.h}:00</p><small>Carga actual: ${l} anomalía(s)</small><div class="bar"><i style="width:${Math.min(l*34,100)}%"></i></div>${S.rol==='Administrador'?`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:12px"><input id="d${t.id}" type="number" min="0" max="23" value="${t.d}" style="width:64px" aria-label="Desde la hora"> a <input id="h${t.id}" type="number" min="0" max="23" value="${t.h}" style="width:64px" aria-label="Hasta la hora"><button class="b" data-a="turno" data-id="${t.id}">Guardar turno</button><button class="b" data-a="tgl" data-id="${t.id}">${t.on?'Marcar no disponible':'Marcar disponible'}</button></div>`:''}</div>`}).join('')}</div>`;
+V.Trabajadores=()=>`<h1>Trabajadores</h1><div class="cg">${tr.map(t=>{const l=ld(t);return `<div class="c"><div style="display:flex;justify-content:space-between;gap:8px"><b>${t.n}</b><span class="st ${!t.on?'mu':av(t)?'ok':'no'}">${!t.on?'No disponible':av(t)?'Disponible ahora':'Fuera de turno'}</span></div><p style="color:var(--mu);margin:6px 0">Turno ${t.d}:00 a ${t.h}:00</p><small>Carga actual: ${l} anomalía(s)</small><div class="bar"><i style="width:${Math.min(l*34,100)}%"></i></div>${S.rol==='Administrador'?`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:12px"><input id="d${t.id}" type="number" min="0" max="23" value="${t.d}" style="width:64px" aria-label="Desde la hora"> a <input id="h${t.id}" type="number" min="0" max="23" value="${t.h}" style="width:64px" aria-label="Hasta la hora"><button class="b" data-a="turno" data-id="${t.id}">Guardar turno</button><button class="b" data-a="tgl" data-id="${t.id}">${t.on?'Marcar no disponible':'Marcar disponible'}</button></div>`:''}</div>`}).join('')}</div>`;
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a="turno"],[data-a="tgl"]');if(!t)return;const w=tr.find(x=>x.id==t.dataset.id);
 if(t.dataset.a==='turno'){const d=+$('#d'+w.id).value,h=+$('#h'+w.id).value;if(!(d>=0&&h<=23&&d<h)){toast('El turno debe estar entre 0 y 23 h, con inicio menor que fin');return}w.d=d;w.h=h;toast('Turno guardado')}
 autoAll();render()});
