@@ -156,8 +156,8 @@ pf('Administrador');
 const MAPIMG='mapa-evacuacion.png';
 
 // URL del backend de Render: se guarda desde Notificaciones, sin editar el código.
-let API_URL='';
-try{API_URL=(localStorage.getItem('ph_backend_url')||'').trim().replace(/\/+$/,'')}catch(e){}
+let API_URL='https://plataforma-hidrica-correo.onrender.com';
+try{API_URL=(localStorage.getItem('ph_backend_url')||API_URL).trim().replace(/\/+$/,'')}catch(e){}
 const PO={'MED-001':[20,28],'MED-002':[18,68],'MED-003':[62,30],'MED-004':[44,62],'MED-005':[82,72]};
 const CZ=['Llave o grifo abierto','Fuga o daño real en tubería','Falla o descalibración del medidor','Uso programado o evento especial','Otro','Falso positivo (consumo normal)'];
 const sd=s=>()=>{s=(s*1664525+1013904223)%4294967296;return s/4294967296};
