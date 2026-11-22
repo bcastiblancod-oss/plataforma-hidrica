@@ -53,6 +53,16 @@ label{display:block;color:var(--mu);font-size:13px;margin:12px 0 4px}
 code{background:var(--ln);padding:1px 6px;border-radius:6px}
 body:not(.in) .app{display:none}body.in .lg{display:none}
 @media(max-width:820px){.lg{grid-template-columns:1fr}.lbrand{padding:28px;justify-content:flex-start}.lcard{padding:28px}}
+
+textarea{font:inherit;border-radius:10px;border:1px solid var(--ln);background:var(--pn);color:var(--ink);padding:8px 12px;width:100%}
+.mp{position:relative;border-radius:12px;overflow:hidden;line-height:0}.mp img{width:100%;display:block}
+.pin{all:unset;position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--c);color:#fff;font:700 13px/24px system-ui;text-align:center;cursor:pointer;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45);z-index:2}
+.pin.sel{outline:3px solid #1D1E16;outline-offset:2px}
+.pin.al::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--c);animation:rg 1.6s infinite}
+@keyframes rg{0%{transform:scale(1);opacity:.85}100%{transform:scale(2.3);opacity:0}}
+.pt{position:absolute;transform:translate(-50%,18px);background:rgba(20,22,14,.85);color:#fff;font:600 10px/1.2 system-ui;padding:2px 6px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:1}
+.cap{color:var(--mu);font-size:12px;margin:4px 0 0}.lgd{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 0;font-size:13px}.lgd i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.mail{border-top:1px solid var(--ln);margin-top:8px;padding-top:10px;font-size:13px}.mail input{width:100%;margin:6px 0}
 </style>
 </head>
 <body>
@@ -89,7 +99,7 @@ const NAV={Administrador:['Inicio','Medidores','Mapa','Anomalías','Trabajadores
 const WHO={Administrador:'Administrador: Sofía Herrera',Trabajador:'Trabajador: Carlos Rojas',Espectador:'Espectador: comunidad universitaria'};
 const pl=p=>`<span class="pl ${p}">${p}</span>`,es=a=>`<span class="es">${a.e}${venc(a)?' (vencida)':''}</span>`;
 const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('o');setTimeout(()=>t.classList.remove('o'),2400)};
-const nt=x=>{S.nt.unshift({t:Date.now(),x});S.un++};
+const nt=x=>{const aviso={t:Date.now(),x};S.nt.unshift(aviso);S.un++;bell();return aviso};
 const spark=v=>{const mx=Math.max(...v),p=v.map((y,i)=>`${i*(160/11)},${38-y/mx*34}`).join(' ');return `<svg viewBox="0 0 160 40" width="100%" height="40"><polyline points="${p}" fill="none" stroke="var(--ac)" stroke-width="2"/></svg>`};
 const mine=a=>S.rol!=='Trabajador'||a.t===S.tid;
 const V={};
@@ -135,14 +145,109 @@ document.addEventListener('input',e=>{if(e.target.id==='q'){S.q=e.target.value;$
 document.addEventListener('change',e=>{if(e.target.id==='fe'||e.target.id==='fp'){S.est=$('#fe').value;S.pri=$('#fp').value;$('#tb').innerHTML=tb()}if(e.target.id==='rol'){S.rol=e.target.value;$('#dr').classList.remove('o');render()}});
 $('#th').onclick=()=>{const r=document.documentElement,d=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);r.dataset.theme=d?'light':'dark'};
 setInterval(()=>{med.forEach(m=>{const k=m.f?2.2:1;m.l+=m.b*k*(.6+Math.random()*.8)/6;m.s.push(m.b*k*(.7+Math.random()*.6));m.s.shift()});
-if(Math.random()<.06){const c=med.filter(m=>!m.f);if(c.length){const m=c[Math.random()*c.length|0],id=Math.max(...an.map(a=>a.id))+1;m.f=1;an.unshift({id,m:m.id,p:'Alta',e:'Detectada',t:null,at:Date.now(),h:{Detectada:Date.now()}});nt(`Anomalía ${id} detectada en ${m.id} (prioridad alta)`)}}
-if(S.v==='Anomalías')$('#tb').innerHTML=tb();else $('#v').innerHTML=V[S.v]();bell()},6000);
+if(S.user&&Math.random()<.06){const c=med.filter(m=>!m.f);if(c.length){const m=c[Math.random()*c.length|0],p=Math.random()<.5?'Alta':Math.random()<.6?'Media':'Baja';registrarAnomalia(m,p)}}
+if(S.v==='Anomalías')$('#tb').innerHTML=tb();else if(!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName))$('#v').innerHTML=V[S.v]();bell()},6000);
 setInterval(()=>{const d=an.filter(a=>a.e==='Detectada'&&!venc(a)).map(a=>a.at+60*M-Date.now()),el=$('#nx');if(!d.length){el.textContent='Sin vencimientos próximos';return}const s=Math.max(0,Math.floor(Math.min(...d)/1e3));el.textContent=`Próximo vencimiento en ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`},1000);
 const USERS=[{u:'sofia.herrera',c:'admin123',r:'Administrador',n:'Sofía Herrera'},{u:'carlos.rojas',c:'trabajo123',r:'Trabajador',n:'Carlos Rojas',t:1},{u:'laura.pineda',c:'trabajo456',r:'Trabajador',n:'Laura Pineda',t:2},{u:'consulta',c:'consulta123',r:'Espectador',n:'comunidad universitaria'}];
 function pf(r){S.pf=r;document.querySelectorAll('.pf button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));$('#lh').innerHTML=USERS.filter(x=>x.r===r).map(x=>`<code>${x.u}</code> / <code>${x.c}</code>`).join('<br>');$('#lu').value='';$('#lc').value='';$('#le').textContent=''}
 function lgIn(){const u=USERS.find(x=>x.r===S.pf&&x.u===$('#lu').value.trim().toLowerCase()&&x.c===$('#lc').value);if(!u){$('#le').textContent='Usuario o contraseña incorrectos para este perfil.';return}S.user=u;S.rol=u.r;S.tid=u.t||0;S.v='Inicio';$('#lc').value='';$('#le').textContent='';document.body.classList.add('in');render();toast(`Bienvenido(a), ${u.n}`)}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='lu'||e.target.id==='lc'))lgIn()});
 pf('Administrador');
+const MAPIMG='mapa-evacuacion.png';
+
+// URL del backend de Render: se guarda desde Notificaciones, sin editar el código.
+let API_URL='';
+try{API_URL=(localStorage.getItem('ph_backend_url')||'').trim().replace(/\/+$/,'')}catch(e){}
+const PO={'MED-001':[20,28],'MED-002':[18,68],'MED-003':[62,30],'MED-004':[44,62],'MED-005':[82,72]};
+const CZ=['Llave o grifo abierto','Fuga o daño real en tubería','Falla o descalibración del medidor','Uso programado o evento especial','Otro','Falso positivo (consumo normal)'];
+const sd=s=>()=>{s=(s*1664525+1013904223)%4294967296;return s/4294967296};
+function chart(m,a){const N=48,x0=46,x1=612,y0=14,y1=150,P=m.b,rnd=sd(a?a.id*97:m.b*13),hh=new Date().getHours(),U=a&&a.live?M/2:H;
+const ex=i=>{const d=((hh-(N-1-i)*24/N+48)%24)-13;return P*(.35+.65*Math.exp(-d*d/22))};
+const tq=Math.floor(Date.now()/3e4);let i0=N+9,i1=N+9;if(a){const g0=Math.floor((a.g0||a.at)/3e4);i0=Math.max(1,N-1-(tq-g0));const gr=a.g1||a.h.Resuelta;if(gr)i1=Math.max(i0+2,i0+Math.floor(gr/3e4)-g0)}
+const amp={Alta:1.7,Media:.75,Baja:.4}[a?a.p:'Baja'],sm=t=>t<=0?0:t>=1?1:t*t*(3-2*t),ob=[],out=[],up=[],lo=[],es_=[];
+for(let i=0;i<N;i++){const e=ex(i);let v=e*(1+.06*(rnd()*2-1)),o=0;if(i>=i0){let s=1-Math.exp(-(i-i0)/12);if(i>=i1)s*=1-sm((i-i1)/4);if(s>.02){v=e+amp*.25*P*s+e*.04*(rnd()*2-1);o=s>.3}}ob.push(v);out.push(o);es_.push(e);up.push(e*1.25+.06*P);lo.push(Math.max(0,e*.75-.06*P))}
+const mx=Math.max(...ob,...up)*1.08,X=i=>x0+i*(x1-x0)/(N-1),Y=v=>y1-v/mx*(y1-y0),pt=r=>r.map((v,i)=>`${X(i)},${Y(v)}`);
+return `<svg viewBox="0 0 620 186" width="100%" role="img" aria-label="Consumo del medidor"><polygon points="${pt(up).concat(pt(lo).reverse()).join(' ')}" fill="var(--li)" opacity=".3"/>${[0,Math.round(mx/2),Math.round(mx)].map(v=>`<line x1="${x0}" x2="${x1}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--ln)"/><text x="${x0-6}" y="${Y(v)+4}" font-size="11" fill="var(--mu)" text-anchor="end">${v}</text>`).join('')}<polyline points="${pt(es_).join(' ')}" fill="none" stroke="var(--ac)" stroke-width="2" stroke-dasharray="5 4"/><polyline points="${pt(ob).join(' ')}" fill="none" stroke="var(--ink)" stroke-width="2"/>${ob.map((v,i)=>out[i]?`<circle cx="${X(i)}" cy="${Y(v)}" r="3.8" fill="var(--wi)"/>`:'').join('')}${[[0,'hace 24 h','start'],[12,'hace 18 h','middle'],[24,'hace 12 h','middle'],[36,'hace 6 h','middle'],[47,'ahora','end']].map(l=>`<text x="${X(l[0])}" y="173" font-size="11" fill="var(--mu)" text-anchor="${l[2]}">${l[1]}</text>`).join('')}</svg><p class="cap">Línea continua: consumo observado (L por intervalo) · Línea punteada y franja: esperado y rango normal · Punto rojo: anomalía · Actualizada a las ${new Date().toLocaleTimeString('es-CO')}, cada 30 s</p>`}
+function D(id){const a=an.find(x=>x.id==id),m=mn(a.m),mi=S.rol==='Trabajador'&&a.t===S.tid;let ac='';
+if(S.rol==='Administrador'&&open(a)&&a.e!=='En atención')ac=`<label for="as">Asignar a</label><select id="as">${tr.filter(t=>t.on).map(t=>`<option value="${t.id}" ${t.id===a.t?'selected':''}>${t.n}${av(t)?'':' (fuera de turno)'}</option>`).join('')}</select> <button class="b p" data-a="asig" data-id="${a.id}">${a.t?'Reasignar':'Asignar'}</button>`;
+if(mi&&a.e==='Asignada')ac=`<button class="b p" data-a="ini" data-id="${a.id}">Iniciar atención</button>`;
+if(mi&&a.e==='En atención')ac=`<h2>Cerrar caso</h2><p style="color:var(--mu);margin:0">Para finalizar debes registrar qué ocurrió.</p><label for="cz">Causa del problema</label><select id="cz" style="width:100%"><option value="">Selecciona la causa…</option>${CZ.map(c=>`<option>${c}</option>`).join('')}</select><label for="cj">Justificación o detalle (obligatoria si es “Otro” o falso positivo)</label><textarea id="cj" rows="3"></textarea><p id="ce" role="alert" style="color:var(--wit);min-height:20px;margin:6px 0"></p><button class="b p" data-a="cerrar" data-id="${a.id}" style="width:100%">Confirmar solución y cerrar</button>`;
+if(!ac)ac=`<p style="color:var(--mu)">${S.rol==='Espectador'?'Tu rol es solo de consulta.':'No hay acciones disponibles en este estado para tu rol.'}</p>`;
+$('#dr').innerHTML=`<button class="b" data-a="x" style="float:right">Cerrar</button><h2>Anomalía ${a.id}</h2><p>${pl(a.p)} ${es(a)}</p><p><b>${m.n}</b> (${m.id})<br><span style="color:var(--mu)">${m.z} · detectada ${F(a.at)}<br>Trabajador: ${wk(a.t)}${a.auto?' (asignación automática)':''}</span></p><div id="gc" data-id="${a.id}">${chart(m,a)}</div><div class="bn" style="margin-top:12px">La detección es estadística y puede generar falsos positivos.</div>${a.causa?`<p><b>Causa registrada:</b> ${a.causa}${a.just?`<br><span style="color:var(--mu)">${a.just}</span>`:''}</p>`:''}<label>Línea de tiempo</label>${['Detectada','Asignada','En atención','Resuelta'].map(s=>`<div class="tl"><span class="st ${a.h[s]?'ok':'mu'}">${s}</span><span style="color:var(--mu);font-size:13px">${a.h[s]?F(a.h[s]):'pendiente'}</span></div>`).join('')}<hr style="border:0;border-top:1px solid var(--ln);margin:16px 0">${ac}`;$('#dr').classList.add('o')}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a="cerrar"]');if(!t)return;const x=an.find(z=>z.id==t.dataset.id),c=$('#cz').value,j=$('#cj').value.trim();
+if(!c){$('#ce').textContent='Debes indicar la causa del problema.';return}
+if((c==='Otro'||c.startsWith('Falso'))&&j.length<5){$('#ce').textContent='La justificación es obligatoria para esta causa.';return}
+x.e='Resuelta';x.h.Resuelta=Date.now();x.causa=c;x.just=j;mn(x.m).f=0;S.res.push(Math.min((Date.now()-x.at)/(x.live?M/2:H),9));
+nt(`Anomalía ${x.id} cerrada: ${c}${j?' ('+j+')':''}. ${x.m} vuelve a la normalidad`);toast('Caso cerrado: el consumo se normaliza');render();D(x.id)});
+V.Mapa=()=>{const m=mn(S.mid),ord={Alta:0,Media:1,Baja:2},oa=an.filter(a=>a.m===m.id&&open(a)).sort((a,b)=>ord[a.p]-ord[b.p]),la=oa[0]||an.filter(a=>a.m===m.id).sort((a,b)=>b.at-a.at)[0];
+const pins=med.map(x=>{const o=an.filter(a=>a.m===x.id&&open(a)).sort((a,b)=>ord[a.p]-ord[b.p]),c=o.length?{Alta:'var(--wi)',Media:'var(--am)',Baja:'var(--ok)'}[o[0].p]:'var(--ok)',p=PO[x.id];
+return `<button class="pin ${o.length?'al':''} ${x.id===S.mid?'sel':''}" data-a="pin" data-id="${x.id}" style="left:${p[0]}%;top:${p[1]}%;--c:${c}" title="${x.n}">${o.length||'✓'}</button><span class="pt" style="left:${p[0]}%;top:${p[1]}%">${x.id}</span>`}).join('');
+return `<h1>Mapa</h1><div class="c"><div class="mp"><img src="${MAPIMG}" alt="Plano de la Manzana Académica entre la Calle 21, la Calle 22 y la Carrera 4">${pins}</div><div class="lgd"><span><i style="background:var(--wi)"></i>Anomalía alta</span><span><i style="background:var(--am)"></i>Media</span><span><i style="background:var(--ok)"></i>Baja o sin anomalías (✓)</span><span style="color:var(--mu)">El número indica las anomalías abiertas del medidor.</span></div></div>
+<div class="c"><h2>${m.n} · ${m.id}</h2><p>${m.z} · ${L(m.l)} L hoy · <span class="st ${m.f?'no':'ok'}">${m.f?'En falla':'Normal'}</span></p>${chart(m,la)}<h2 style="margin-top:14px">Anomalías abiertas</h2>${oa.length?tbl(oa):'<p style="color:var(--mu)">Sin anomalías abiertas: el consumo está dentro del rango normal.</p>'}</div>`};
+function bell(){const b=$('#bell');if(b)b.textContent=`Notificaciones (${S.un})`;const l=$('#nl');if(l)l.innerHTML=S.nt.slice(0,8).map(n=>`<p>${n.x}<br><small style="color:var(--mu)">${F(n.t)}${n.m?' · '+n.m:''}</small></p>`).join('')}
+function mstat(){const estado=API_URL?'backend configurado':'backend sin configurar';$('#ms').textContent=`Destino: ${S.mail||'sin correo guardado'} · ${estado}. Las alertas se generan solo mientras la página esté abierta y hayas iniciado sesión.`}
+function initMail(){
+ let v='';try{v=localStorage.getItem('ph_mail')||''}catch(e){}
+ // No incrustamos correos personales en el HTML público.
+ S.mail=v;
+ $('#np').innerHTML=`<div id="nl"></div><div class="mail"><b>Alertas por correo (simulación)</b><label for="em">Correo destinatario</label><input id="em" type="email" value="${S.mail}" placeholder="tu-correo@ejemplo.com" aria-label="Correo de notificaciones"><label for="eu">URL de tu backend Render</label><input id="eu" type="url" value="${API_URL}" placeholder="https://nombre.onrender.com" aria-label="URL de tu backend"><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="b" data-a="mailconfig">Guardar configuración</button><select id="testPriority" aria-label="Prioridad para prueba"><option>Alta</option><option>Media</option><option>Baja</option></select><button class="b p" data-a="testalert">Simular anomalía y enviar</button><button class="b" data-a="mailto">Enviar resumen manual</button></div><p id="ms" class="cap"></p></div>`;
+ mstat();bell();
+}
+async function mailer(mensaje,asunto,aviso){
+ if(!aviso)return false;
+ if(!S.mail||!API_URL){aviso.m='No enviado: falta correo o URL de Render';bell();return false}
+ aviso.m='enviando correo…';bell();
+ try{
+  const r=await fetch(API_URL+'/notificar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:S.mail,asunto,mensaje})});
+  aviso.m=r.ok?'correo aceptado por el servidor':'error de envío (HTTP '+r.status+')';
+  bell();
+  return r.ok;
+ }catch(e){aviso.m='sin conexión con el backend';bell();return false}
+}
+function registrarAnomalia(m,p){
+ const id=Math.max(...an.map(a=>a.id))+1,ahora=Date.now();
+ m.f=1;
+ an.unshift({id,m:m.id,p,e:'Detectada',t:null,at:ahora,live:1,h:{Detectada:ahora}});
+ const aviso=nt(`Anomalía ${id} detectada en ${m.id} (prioridad ${p.toLowerCase()})`);
+ const fecha=new Date(ahora).toLocaleString('es-CO');
+ const mensaje=`ALERTA DE CONSUMO HÍDRICO — SIMULACIÓN\nPrioridad: ${p}\nAnomalía: ${id}\nMedidor: ${m.id} — ${m.n}\nUbicación: ${m.z}\nEstado: Detectada\nFecha: ${fecha}\nEste aviso corresponde a una simulación de la Plataforma hídrica de la Universidad Central.`;
+ void mailer(mensaje,`[${p.toUpperCase()}] Anomalía hídrica ${id} · ${m.id}`,aviso);
+ return id;
+}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-a="mailconfig"],[data-a="testalert"],[data-a="mailto"]');if(!t)return;
+ if(t.dataset.a==='mailconfig'){
+  const correo=$('#em').value.trim(),url=$('#eu').value.trim().replace(/\/+$/,'');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)){toast('Ingresa un correo válido');return}
+  let u;try{u=new URL(url)}catch(e){toast('Ingresa la URL completa de Render');return}
+  if(u.protocol!=='https:'||u.pathname!=='/'||u.search||u.hash){toast('Usa una URL HTTPS de Render sin rutas adicionales');return}
+  S.mail=correo;API_URL=u.origin;
+  try{localStorage.setItem('ph_mail',correo);localStorage.setItem('ph_backend_url',API_URL)}catch(e){}
+  mstat();toast('Configuración guardada en este navegador');
+ }else if(t.dataset.a==='testalert'){
+  if(!S.mail||!API_URL){toast('Primero guarda el correo y la URL del backend');return}
+  const libres=med.filter(m=>!m.f),candidatos=libres.length?libres:med;
+  const m=candidatos[Math.random()*candidatos.length|0];
+  const id=registrarAnomalia(m,$('#testPriority').value);
+  toast(`Anomalía simulada ${id} creada: revisa Notificaciones y tu correo`);
+  if(S.user)render();
+ }else{
+  if(!S.mail){toast('Primero guarda un correo');return}
+  const b=S.nt.slice(0,10).map(n=>'- '+n.x+' ('+F(n.t)+')').join('\n');
+  location.href='mailto:'+S.mail+'?subject='+encodeURIComponent('Plataforma hídrica: notificaciones')+'&body='+encodeURIComponent(b);
+ }
+});
+initMail();
+
+{const n=Date.now(),mm={57:[8,0],56:[20,0],55:[30,0],54:[14,0],53:[40,14],52:[44,20]};an.forEach(a=>{const k=mm[a.id];if(k){a.g0=n-k[0]*3e4;if(k[1])a.g1=a.g0+k[1]*3e4}})}
+function auto(a){const c=tr.filter(av).sort((x,y)=>ld(x)-ld(y)||x.id-y.id)[0];if(!c)return 0;a.t=c.id;a.e='Asignada';a.h.Asignada=Date.now();a.auto=1;nt(`Asignación automática: anomalía ${a.id} (${a.p.toLowerCase()}) → ${c.n}`);return 1}
+function autoAll(){let n=0;an.filter(a=>a.e==='Detectada'&&!a.t).forEach(a=>{n+=auto(a)});return n}
+setInterval(()=>{if(autoAll()&&S.user){if(S.v==='Anomalías')$('#tb').innerHTML=tb();else if(!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName))$('#v').innerHTML=V[S.v]();bell()}},3000);
+V.Trabajadores=()=>`<h1>Trabajadores</h1><p style="color:var(--mu);margin:-6px 0 14px">Las anomalías nuevas se asignan automáticamente al trabajador disponible con menos carga. El administrador controla quién está disponible y su turno.</p><div class="cg">${tr.map(t=>{const l=ld(t);return `<div class="c"><div style="display:flex;justify-content:space-between;gap:8px"><b>${t.n}</b><span class="st ${!t.on?'mu':av(t)?'ok':'no'}">${!t.on?'No disponible':av(t)?'Disponible ahora':'Fuera de turno'}</span></div><p style="color:var(--mu);margin:6px 0">Turno ${t.d}:00 a ${t.h}:00</p><small>Carga actual: ${l} anomalía(s)</small><div class="bar"><i style="width:${Math.min(l*34,100)}%"></i></div>${S.rol==='Administrador'?`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:12px"><input id="d${t.id}" type="number" min="0" max="23" value="${t.d}" style="width:64px" aria-label="Desde la hora"> a <input id="h${t.id}" type="number" min="0" max="23" value="${t.h}" style="width:64px" aria-label="Hasta la hora"><button class="b" data-a="turno" data-id="${t.id}">Guardar turno</button><button class="b" data-a="tgl" data-id="${t.id}">${t.on?'Marcar no disponible':'Marcar disponible'}</button></div>`:''}</div>`}).join('')}</div>`;
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a="turno"],[data-a="tgl"]');if(!t)return;const w=tr.find(x=>x.id==t.dataset.id);
+if(t.dataset.a==='turno'){const d=+$('#d'+w.id).value,h=+$('#h'+w.id).value;if(!(d>=0&&h<=23&&d<h)){toast('El turno debe estar entre 0 y 23 h, con inicio menor que fin');return}w.d=d;w.h=h;toast('Turno guardado')}
+autoAll();render()});
+setInterval(()=>{const g=$('#gc');if(g&&$('#dr').classList.contains('o')){const a=an.find(x=>x.id==g.dataset.id);if(a)g.innerHTML=chart(mn(a.m),a)}},30000);
 </script>
 </body>
 </html>
