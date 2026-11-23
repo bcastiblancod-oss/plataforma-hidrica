@@ -63,6 +63,40 @@ textarea{font:inherit;border-radius:10px;border:1px solid var(--ln);background:v
 .pt{position:absolute;transform:translate(-50%,18px);background:rgba(20,22,14,.85);color:#fff;font:600 10px/1.2 system-ui;padding:2px 6px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:1}
 .cap{color:var(--mu);font-size:12px;margin:4px 0 0}.lgd{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 0;font-size:13px}.lgd i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .mail{border-top:1px solid var(--ln);margin-top:8px;padding-top:10px;font-size:13px}.mail input{width:100%;margin:6px 0}
+
+/* ===== Mejoras ===== */
+/* Panel lateral: era un <aside> y heredaba display:flex del menú, lo que aplastaba el textarea */
+.dr{display:block;gap:0;padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+.dr>*{flex-shrink:0}
+.dr textarea{display:block;min-height:110px;resize:vertical;line-height:1.4}
+.dr select,.dr input{max-width:100%}
+.dr{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+.dr .b{white-space:normal;overflow-wrap:anywhere}
+@media(min-width:1000px){.dr{width:min(520px,42vw)}}
+@media(max-width:820px){.dr{width:100%;padding:18px 16px 54px}}
+/* Inicio */
+.ig{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:start}.ig .c{margin:0}
+@media(max-width:1000px){.ig{grid-template-columns:1fr}}
+.hd2{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.hd2 h2{margin:0}
+.sg{display:inline-flex;gap:4px;background:var(--ln);padding:3px;border-radius:12px}
+.sg button{all:unset;cursor:pointer;padding:5px 13px;border-radius:9px;font-weight:600;font-size:13px;color:var(--mu)}
+.sg button:hover{color:var(--ink)}.sg button.on{background:var(--pn);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.14)}
+.sg button:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+/* Mapa */
+.mg{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}.mg .c{margin:0}
+@media(min-width:1100px){.mg{grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr)}}
+.mp{max-width:740px;margin-inline:auto;border:1px solid var(--ln);box-shadow:0 6px 22px rgba(0,0,0,.10)}
+.pin{width:26px;height:26px;margin:-13px 0 0 -13px;font-size:12px;line-height:20px}
+@media(max-width:820px){.pin{width:30px;height:30px;margin:-15px 0 0 -15px;line-height:24px}}
+/* Asistente */
+.chat{display:flex;flex-direction:column;gap:12px;max-width:880px}.chat.c{margin-bottom:0}
+.cm{height:min(58vh,540px);overflow:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px}
+.cu{align-self:flex-end;background:var(--wi);color:#fff;padding:9px 13px;border-radius:14px 14px 4px 14px;max-width:85%;white-space:pre-wrap;overflow-wrap:anywhere}
+.cb{align-self:flex-start;background:color-mix(in srgb,var(--li) 14%,var(--pn));border:1px solid var(--ln);padding:10px 13px;border-radius:14px 14px 14px 4px;max-width:94%}
+.cb .tx{white-space:pre-wrap;overflow-wrap:anywhere}.cb hr{border:0;border-top:1px solid var(--ln);margin:10px 0 6px}
+.au{font-size:12px;color:var(--mu);line-height:1.5}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips .b{font-size:13px;padding:5px 11px;border-radius:99px;font-weight:500}
+.cin{display:flex;gap:8px}.cin input{flex:1;min-width:0}
 </style>
 </head>
 <body>
@@ -81,6 +115,7 @@ textarea{font:inherit;border-radius:10px;border:1px solid var(--ln);background:v
 <section id="v"></section>
 </main></div>
 <aside class="dr" id="dr" aria-live="polite"></aside><div id="toast"></div>
+<script src="asistente-base.js"></script>
 <script>
 const $=s=>document.querySelector(s),M=6e4,L=n=>Math.round(n).toLocaleString('es-CO'),H=36e5;
 const F=t=>new Date(t).toLocaleString('es-CO',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
@@ -103,21 +138,10 @@ const nt=x=>{const aviso={t:Date.now(),x};S.nt.unshift(aviso);S.un++;bell();retu
 const spark=v=>{const mx=Math.max(...v),p=v.map((y,i)=>`${i*(160/11)},${38-y/mx*34}`).join(' ');return `<svg viewBox="0 0 160 40" width="100%" height="40"><polyline points="${p}" fill="none" stroke="var(--ac)" stroke-width="2"/></svg>`};
 const mine=a=>S.rol!=='Trabajador'||a.t===S.tid;
 const V={};
-V.Inicio=()=>{const o=an.filter(open),ve=an.filter(venc),tot=med.reduce((s,m)=>s+m.l,0),c=p=>o.filter(a=>a.p===p).length,avg=S.res.reduce((a,b)=>a+b,0)/S.res.length,h=hr();
-const r=Array.from({length:h+1},(_,i)=>.15+Math.exp(-((i-12)**2)/16)),sm=r.reduce((a,b)=>a+b,0),vals=r.map(x=>x/sm*tot),mx=Math.max(...vals),pts=vals.map((y,i)=>`${40+i*(560/23)},${150-y/mx*120}`);
-const area=`${pts.join(' ')} ${40+h*(560/23)},150 40,150`;
-return `<h1>Inicio</h1>${ve.length?`<div class="bn"><b>Atención:</b> hay ${ve.length} anomalía(s) vencida(s) sin asignar. ${S.rol==='Administrador'?'<a data-a="go" data-v="Anomalías" data-est="Detectada">Asignarla ahora</a>':''}</div>`:''}
-<div class="g"><div class="c k"><b>${L(tot)} L</b><span>Consumo de hoy en los medidores activos</span></div>
-<div class="c k"><b>${o.length}</b><span>Anomalías abiertas: ${c('Alta')} Alta, ${c('Media')} Media, ${c('Baja')} Baja</span></div>
-<div class="c k"><b>${avg.toFixed(1).replace('.',',')} h</b><span>Tiempo medio de atención, últimos 30 días</span></div>
-<div class="c k"><b>${med.filter(m=>m.f).length} de ${med.length}</b><span>Medidores con falla activa</span></div></div>
-<div class="c"><h2>Consumo por hora, hoy (L)</h2><svg viewBox="0 0 620 175" width="100%"><polygon points="${area}" fill="var(--li)" opacity=".35"/><polyline points="${pts.join(' ')}" fill="none" stroke="var(--ac)" stroke-width="2.5"/>${[0,6,12,18,23].map(i=>`<text x="${40+i*(560/23)}" y="168" font-size="11" fill="var(--mu)" text-anchor="middle">${i}:00</text>`).join('')}</svg></div>
-<div class="c"><h2>Anomalías recientes</h2>${tbl(an.filter(mine).sort((a,b)=>b.at-a.at).slice(0,5))}</div>`};
+
 function tbl(l){return l.length?`<div class="tw"><table><thead><tr><th>N.°</th><th>Medidor</th><th>Prioridad</th><th>Estado</th><th>Trabajador</th><th>Detectada</th></tr></thead><tbody>${l.map(a=>`<tr data-a="ver" data-id="${a.id}"><td><span class="lk">${a.id}</span></td><td>${a.m}</td><td>${pl(a.p)}</td><td>${es(a)}</td><td>${wk(a.t)}</td><td>${F(a.at)}</td></tr>`).join('')}</tbody></table></div>`:'<p style="color:var(--mu)">Sin resultados para estos filtros.</p>'}
 V.Medidores=()=>`<h1>Medidores</h1><div class="cg">${med.map(m=>`<div class="c"><div style="display:flex;justify-content:space-between"><b>${m.n}</b><span class="st ${m.f?'no':'ok'}">${m.f?'En falla':'Normal'}</span></div><small style="color:var(--mu)">${m.id} · ${m.z}</small><div style="font-size:22px;font-weight:700;margin:8px 0">${L(m.l)} L <small style="font-size:12px;color:var(--mu);font-weight:400">hoy</small></div>${spark(m.s)}<p style="margin:10px 0 0"><a data-a="pin" data-id="${m.id}">Ver en el mapa</a></p></div>`).join('')}</div>`;
-V.Mapa=()=>{const m=mn(S.mid),oa=an.filter(a=>a.m===m.id&&open(a));return `<h1>Mapa</h1><div class="c"><svg viewBox="0 0 640 310" width="100%"><rect width="640" height="310" rx="12" fill="color-mix(in srgb,var(--li) 12%,var(--pn))"/><rect x="0" y="262" width="640" height="26" fill="var(--ln)"/><text x="16" y="279" font-size="11" fill="var(--mu)">Carrera 5</text>${[['Edificio A',60,50,150,200],['Edificio B',280,50,150,100],['Cafetería',280,170,150,70],['Edificio C',470,90,130,140]].map(b=>`<rect x="${b[1]}" y="${b[2]}" width="${b[3]}" height="${b[4]}" rx="10" fill="var(--pn)" stroke="var(--ln)"/><text x="${b[1]+8}" y="${b[2]+16}" font-size="11" fill="var(--mu)">${b[0]}</text>`).join('')}${med.map(x=>`<g data-a="pin" data-id="${x.id}" style="cursor:pointer">${x.f?`<circle class="pu" cx="${x.x}" cy="${x.y}" r="9" fill="var(--wi)"/>`:''}<circle cx="${x.x}" cy="${x.y}" r="9" fill="${x.f?'var(--wi)':'var(--ok)'}" stroke="#fff" stroke-width="${x.id===S.mid?4:2}"/><text x="${x.x}" y="${x.y+24}" font-size="10" text-anchor="middle" fill="var(--ink)">${x.id}</text></g>`).join('')}</svg>
-<p style="color:var(--mu);font-size:13px">Esquema ilustrativo de la Manzana Académica. Verde: normal. Vino: falla activa.</p></div>
-<div class="c"><h2>${m.n} · ${m.id}</h2><p>${m.z} · ${L(m.l)} L hoy · <span class="st ${m.f?'no':'ok'}">${m.f?'En falla':'Normal'}</span></p>${oa.length?tbl(oa):'<p style="color:var(--mu)">Sin anomalías abiertas.</p>'}</div>`};
+
 V['Anomalías']=()=>`<h1>Anomalías</h1><div class="c"><div class="controls" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><input id="q" placeholder="Buscar por N.° o medidor" value="${S.q}"><select id="fe">${['Todas','Detectada','Asignada','En atención','Resuelta'].map(x=>`<option ${x===S.est?'selected':''}>${x}</option>`).join('')}</select><select id="fp">${['Todas','Alta','Media','Baja'].map(x=>`<option ${x===S.pri?'selected':''}>${x}</option>`).join('')}</select></div><div id="tb">${tb()}</div></div>`;
 function tb(){const q=S.q.toLowerCase();return tbl(an.filter(mine).filter(a=>(S.est==='Todas'||a.e===S.est)&&(S.pri==='Todas'||a.p===S.pri)&&(!q||String(a.id).includes(q)||a.m.toLowerCase().includes(q)||mn(a.m).n.toLowerCase().includes(q))).sort((a,b)=>b.at-a.at))}
 V.Trabajadores=()=>`<h1>Trabajadores</h1><div class="cg">${tr.map(t=>{const l=ld(t);return `<div class="c"><div style="display:flex;justify-content:space-between"><b>${t.n}</b><span class="st ${!t.on?'mu':av(t)?'ok':'no'}">${!t.on?'Inactivo':av(t)?'Disponible ahora':'Fuera de turno'}</span></div><p style="color:var(--mu);margin:6px 0">Turno ${t.d}:00 a ${t.h}:00 · lunes a viernes</p><small>Carga actual: ${l} anomalía(s)</small><div class="bar"><i style="width:${Math.min(l*34,100)}%"></i></div>${S.rol==='Administrador'?`<p style="margin:12px 0 0"><button class="b" data-a="tgl" data-id="${t.id}">${t.on?'Desactivar':'Activar'}</button></p>`:''}</div>`}).join('')}</div>`;
@@ -137,7 +161,7 @@ else if(a==='pin'){S.mid=id;go('Mapa')}
 else if(a==='bell'){$('#np').classList.toggle('o');S.un=0;bell()}
 else if(a==='out'){S.user=null;S.rol='';S.v='Inicio';$('#dr').classList.remove('o');$('#np').classList.remove('o');document.body.classList.remove('in');pf(S.pf)}
 else if(a==='lgin')lgIn();else if(a==='perfil')pf(t.dataset.r);else if(a==='demo'){const u=USERS.find(x=>x.r===S.pf);$('#lu').value=u.u;$('#lc').value=u.c}
-else if(a==='tgl'){const w=tr.find(x=>x.id==id);w.on=w.on?0:1;render()}
+/* Disponibilidad gestionada en un único manejador al final del archivo. */
 else if(a==='asig'){const x=an.find(z=>z.id==id),w=+$('#as').value;x.t=w;x.e='Asignada';x.h.Asignada=Date.now();nt(`Se asignó la anomalía ${id} a ${wk(w)}`);if(x.live){const av=nt(`Notificacion de anomalia ${id} para ${wk(w)}`);void enviarAlTrabajador(x,av)}toast(`Anomalía ${id} asignada a ${wk(w)}`);render();D(id)}
 else if(a==='ini'){const x=an.find(z=>z.id==id);x.e='En atención';x.h['En atención']=Date.now();toast('Atención iniciada');render();D(id)}
 else if(a==='res'){const x=an.find(z=>z.id==id);x.e='Resuelta';x.h.Resuelta=Date.now();mn(x.m).f=0;S.res.push(Math.min((Date.now()-x.at)/H,9));nt(`Anomalía ${id} resuelta; ${x.m} vuelve a la normalidad`);toast('Resuelta: el medidor se regula');render();D(id)}});
@@ -146,7 +170,7 @@ document.addEventListener('change',e=>{if(e.target.id==='fe'||e.target.id==='fp'
 $('#th').onclick=()=>{const r=document.documentElement,d=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);r.dataset.theme=d?'light':'dark'};
 setInterval(()=>{med.forEach(m=>{const k=m.f?2.2:1;m.l+=m.b*k*(.6+Math.random()*.8)/6;m.s.push(m.b*k*(.7+Math.random()*.6));m.s.shift()});
 if(S.user&&Math.random()<.06){const c=med.filter(m=>!m.f);if(c.length){const m=c[Math.random()*c.length|0],p=Math.random()<.5?'Alta':Math.random()<.6?'Media':'Baja';registrarAnomalia(m,p)}}
-if(S.v==='Anomalías')$('#tb').innerHTML=tb();else if(!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName))$('#v').innerHTML=V[S.v]();bell()},6000);
+if(S.v==='Anomalías')$('#tb').innerHTML=tb();else if(S.v!=='Asistente'&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName))$('#v').innerHTML=V[S.v]();bell()},6000);
 setInterval(()=>{const d=an.filter(a=>a.e==='Detectada'&&!venc(a)).map(a=>a.at+60*M-Date.now()),el=$('#nx');if(!d.length){el.textContent='Sin vencimientos próximos';return}const s=Math.max(0,Math.floor(Math.min(...d)/1e3));el.textContent=`Próximo vencimiento en ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`},1000);
 const USERS=[{u:'sofia.herrera',c:'admin123',r:'Administrador',n:'Sofía Herrera'},{u:'carlos.rojas',c:'trabajo123',r:'Trabajador',n:'Carlos Rojas',t:1},{u:'laura.pineda',c:'trabajo456',r:'Trabajador',n:'Laura Pineda',t:2},{u:'consulta',c:'consulta123',r:'Espectador',n:'comunidad universitaria'}];
 function pf(r){S.pf=r;document.querySelectorAll('.pf button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));$('#lh').innerHTML=USERS.filter(x=>x.r===r).map(x=>`<code>${x.u}</code> / <code>${x.c}</code>`).join('<br>');$('#lu').value='';$('#lc').value='';$('#le').textContent=''}
@@ -169,7 +193,7 @@ return `<svg viewBox="0 0 620 186" width="100%" role="img" aria-label="Consumo d
 function D(id){const a=an.find(x=>x.id==id),m=mn(a.m),mi=S.rol==='Trabajador'&&a.t===S.tid;let ac='';
 if(S.rol==='Administrador'&&open(a)&&a.e!=='En atención')ac=`<label for="as">Asignar a</label><select id="as">${tr.filter(t=>t.on).map(t=>`<option value="${t.id}" ${t.id===a.t?'selected':''}>${t.n}${av(t)?'':' (fuera de turno)'}</option>`).join('')}</select> <button class="b p" data-a="asig" data-id="${a.id}">${a.t?'Reasignar':'Asignar'}</button>`;
 if(mi&&a.e==='Asignada')ac=`<button class="b p" data-a="ini" data-id="${a.id}">Iniciar atención</button>`;
-if(mi&&a.e==='En atención')ac=`<h2>Cerrar caso</h2><p style="color:var(--mu);margin:0">Para finalizar debes registrar qué ocurrió.</p><label for="cz">Causa del problema</label><select id="cz" style="width:100%"><option value="">Selecciona la causa…</option>${CZ.map(c=>`<option>${c}</option>`).join('')}</select><label for="cj">Justificación o detalle (obligatoria si es “Otro” o falso positivo)</label><textarea id="cj" rows="3"></textarea><p id="ce" role="alert" style="color:var(--wit);min-height:20px;margin:6px 0"></p><button class="b p" data-a="cerrar" data-id="${a.id}" style="width:100%">Confirmar solución y cerrar</button>`;
+if(mi&&a.e==='En atención')ac=`<h2>Cerrar caso</h2><p style="color:var(--mu);margin:0">Para finalizar debes registrar qué ocurrió.</p><label for="cz">Causa del problema</label><select id="cz" style="width:100%;min-width:0"><option value="">Selecciona la causa…</option>${CZ.map(c=>`<option>${c}</option>`).join('')}</select><label for="cj">Justificación o detalle (obligatoria si es “Otro” o falso positivo)</label><textarea id="cj" rows="5" placeholder="Describa la causa encontrada y las acciones realizadas…" style="width:100%;min-height:150px;resize:vertical;box-sizing:border-box"></textarea><p id="ce" role="alert" style="color:var(--wit);min-height:20px;margin:6px 0"></p><button class="b p" data-a="cerrar" data-id="${a.id}" style="width:100%">Confirmar solución y cerrar</button>`;
 if(!ac)ac=`<p style="color:var(--mu)">${S.rol==='Espectador'?'Tu rol es solo de consulta.':'No hay acciones disponibles en este estado para tu rol.'}</p>`;
 if(S.rol==='Administrador'&&a.t&&open(a))ac+=`<p><button class="b p" data-a="notificarWorker" data-id="${a.id}">Enviar notificacion a ${wk(a.t)}</button></p>`;
 $('#dr').innerHTML=`<button class="b" data-a="x" style="float:right">Cerrar</button><h2>Anomalía ${a.id}</h2><p>${pl(a.p)} ${es(a)}</p><p><b>${m.n}</b> (${m.id})<br><span style="color:var(--mu)">${m.z} · detectada ${F(a.at)}<br>Trabajador: ${wk(a.t)}${a.auto?' (asignación automática)':''}</span></p><div id="gc" data-id="${a.id}">${chart(m,a)}</div>${a.causa?`<p><b>Causa registrada:</b> ${a.causa}${a.just?`<br><span style="color:var(--mu)">${a.just}</span>`:''}</p>`:''}<label>Línea de tiempo</label>${['Detectada','Asignada','En atención','Resuelta'].map(s=>`<div class="tl"><span class="st ${a.h[s]?'ok':'mu'}">${s}</span><span style="color:var(--mu);font-size:13px">${a.h[s]?F(a.h[s]):'pendiente'}</span></div>`).join('')}<hr style="border:0;border-top:1px solid var(--ln);margin:16px 0">${ac}`;$('#dr').classList.add('o')}
@@ -178,11 +202,7 @@ if(!c){$('#ce').textContent='Debes indicar la causa del problema.';return}
 if((c==='Otro'||c.startsWith('Falso'))&&j.length<5){$('#ce').textContent='La justificación es obligatoria para esta causa.';return}
 x.e='Resuelta';x.h.Resuelta=Date.now();x.causa=c;x.just=j;mn(x.m).f=0;S.res.push(Math.min((Date.now()-x.at)/(x.live?M/2:H),9));
 nt(`Anomalía ${x.id} cerrada: ${c}${j?' ('+j+')':''}. ${x.m} vuelve a la normalidad`);toast('Caso cerrado: el consumo se normaliza');render();D(x.id)});
-V.Mapa=()=>{const m=mn(S.mid),ord={Alta:0,Media:1,Baja:2},oa=an.filter(a=>a.m===m.id&&open(a)).sort((a,b)=>ord[a.p]-ord[b.p]),la=oa[0]||an.filter(a=>a.m===m.id).sort((a,b)=>b.at-a.at)[0];
-const pins=med.map(x=>{const o=an.filter(a=>a.m===x.id&&open(a)).sort((a,b)=>ord[a.p]-ord[b.p]),c=o.length?{Alta:'var(--wi)',Media:'var(--am)',Baja:'var(--ok)'}[o[0].p]:'var(--ok)',p=PO[x.id];
-return `<button class="pin ${o.length?'al':''} ${x.id===S.mid?'sel':''}" data-a="pin" data-id="${x.id}" style="left:${p[0]}%;top:${p[1]}%;--c:${c}" title="${x.n}">${o.length||'✓'}</button><span class="pt" style="left:${p[0]}%;top:${p[1]}%">${x.id}</span>`}).join('');
-return `<h1>Mapa</h1><div class="c"><div class="mp"><img src="${MAPIMG}" alt="Plano de la Manzana Académica entre la Calle 21, la Calle 22 y la Carrera 4">${pins}</div><div class="lgd"><span><i style="background:var(--wi)"></i>Anomalía alta</span><span><i style="background:var(--am)"></i>Media</span><span><i style="background:var(--ok)"></i>Baja o sin anomalías (✓)</span><span style="color:var(--mu)">El número indica las anomalías abiertas del medidor.</span></div></div>
-<div class="c"><h2>${m.n} · ${m.id}</h2><p>${m.z} · ${L(m.l)} L hoy · <span class="st ${m.f?'no':'ok'}">${m.f?'En falla':'Normal'}</span></p>${chart(m,la)}<h2 style="margin-top:14px">Anomalías abiertas</h2>${oa.length?tbl(oa):'<p style="color:var(--mu)">Sin anomalías abiertas: el consumo está dentro del rango normal.</p>'}</div>`};
+
 function bell(){const b=$('#bell');if(b)b.textContent=`Notificaciones (${S.un})`;const l=$('#nl');if(l)l.innerHTML=S.nt.slice(0,8).map(n=>`<p>${n.x}<br><small style="color:var(--mu)">${F(n.t)}${n.m?' · '+n.m:''}</small></p>`).join('')}
 function initMail(){
  $('#np').innerHTML=`<div id="nl"></div><div class="mail"><b>Enviar notificacion al trabajador</b><label for="workerSelect">Trabajador destinatario</label><select id="workerSelect" style="width:100%">${tr.map(t=>`<option value="${t.id}">${t.n}</option>`).join('')}</select><label for="testPriority">Prioridad</label><select id="testPriority" style="width:100%"><option>Alta</option><option>Media</option><option>Baja</option></select><button class="b p" style="width:100%;margin-top:10px" data-a="testalert" id="testalert">Enviar notificacion a ${wk(tr[0].id)}</button></div>`;
@@ -274,12 +294,98 @@ function auto(a){
  return 1;
 }
 function autoAll(){let n=0;an.filter(a=>a.e==='Detectada'&&!a.t).forEach(a=>{n+=auto(a)});return n}
-setInterval(()=>{if(autoAll()&&S.user){if(S.v==='Anomalías')$('#tb').innerHTML=tb();else if(!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName))$('#v').innerHTML=V[S.v]();bell()}},3000);
+setInterval(()=>{if(autoAll()&&S.user){if(S.v==='Anomalías')$('#tb').innerHTML=tb();else if(S.v!=='Asistente'&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName))$('#v').innerHTML=V[S.v]();bell()}},3000);
 V.Trabajadores=()=>`<h1>Trabajadores</h1><div class="cg">${tr.map(t=>{const l=ld(t);return `<div class="c"><div style="display:flex;justify-content:space-between;gap:8px"><b>${t.n}</b><span class="st ${!t.on?'mu':av(t)?'ok':'no'}">${!t.on?'No disponible':av(t)?'Disponible ahora':'Fuera de turno'}</span></div><p style="color:var(--mu);margin:6px 0">Turno ${t.d}:00 a ${t.h}:00</p><small>Carga actual: ${l} anomalía(s)</small><div class="bar"><i style="width:${Math.min(l*34,100)}%"></i></div>${S.rol==='Administrador'?`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:12px"><input id="d${t.id}" type="number" min="0" max="23" value="${t.d}" style="width:64px" aria-label="Desde la hora"> a <input id="h${t.id}" type="number" min="0" max="23" value="${t.h}" style="width:64px" aria-label="Hasta la hora"><button class="b" data-a="turno" data-id="${t.id}">Guardar turno</button><button class="b" data-a="tgl" data-id="${t.id}">${t.on?'Marcar no disponible':'Marcar disponible'}</button></div>`:''}</div>`}).join('')}</div>`;
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a="turno"],[data-a="tgl"]');if(!t)return;const w=tr.find(x=>x.id==t.dataset.id);
-if(t.dataset.a==='turno'){const d=+$('#d'+w.id).value,h=+$('#h'+w.id).value;if(!(d>=0&&h<=23&&d<h)){toast('El turno debe estar entre 0 y 23 h, con inicio menor que fin');return}w.d=d;w.h=h;toast('Turno guardado')}
+if(t.dataset.a==='turno'){const d=Number($('#d'+w.id).value),h=Number($('#h'+w.id).value);if(!Number.isInteger(d)||!Number.isInteger(h)||d<0||h>23||d>=h){toast('El turno debe estar entre 0 y 23 h, con inicio menor que fin');return}w.d=d;w.h=h;toast('Turno guardado')}
+else if(t.dataset.a==='tgl'){w.on=w.on?0:1;toast(w.n+': '+(w.on?'disponible':'no disponible'))}
 autoAll();render()});
 setInterval(()=>{const g=$('#gc');if(g&&$('#dr').classList.contains('o')){const a=an.find(x=>x.id==g.dataset.id);if(a)g.innerHTML=chart(mn(a.m),a)}},30000);
+</script>
+<script>
+/* ===== Mejoras: gráfica de consumo, mapa y asistente ===== */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+S.gr=6;
+function consumoCard(){
+ const g=S.gr||6,h=hr(),tot=med.reduce((s,m)=>s+m.l,0);
+ const r=Array.from({length:h+1},(_,i)=>.15+Math.exp(-((i-12)**2)/16)),sm=r.reduce((a,b)=>a+b,0),vals=r.map(x=>x/sm*tot);
+ const n=Math.ceil(24/g),bk=[];
+ for(let k=0;k<n&&k*g<=h;k++){const a=k*g;bk.push({k,a,v:vals.slice(a,Math.min(a+g,h+1)).reduce((s,x)=>s+x,0),live:a+g>h})}
+ const x0=46,x1=612,y0=20,y1=166,sw=(x1-x0)/n,bw=Math.min(sw*.72,56),mx=(Math.max(...bk.map(b=>b.v))*1.12)||1,Y=v=>y1-v/mx*(y1-y0);
+ const rng=k=>g===1?`${k}:00`:`${k*g}–${k*g+g} h`;
+ const grid=[0,.5,1].map(f=>`<line x1="${x0}" x2="${x1}" y1="${Y(mx*f)}" y2="${Y(mx*f)}" stroke="var(--ln)"/><text x="${x0-6}" y="${Y(mx*f)+4}" font-size="11" fill="var(--mu)" text-anchor="end">${L(mx*f)}</text>`).join('');
+ const bars=bk.map(b=>{const x=x0+b.k*sw+(sw-bw)/2,y=Y(b.v);return `<rect x="${x}" y="${y}" width="${bw}" height="${y1-y}" rx="4" fill="${b.live?'var(--li)':'var(--ac)'}" ${b.live?'stroke="var(--ac)" stroke-width="1.5" stroke-dasharray="4 3"':'opacity=".92"'}><title>${rng(b.k)}: ${L(b.v)} L</title></rect>${g>=3?`<text x="${x+bw/2}" y="${y-5}" font-size="10" text-anchor="middle" fill="var(--ink)">${L(b.v)}</text>`:''}`}).join('');
+ const xl=Array.from({length:n},(_,k)=>(g>1||k%3===0)?`<text x="${x0+k*sw+sw/2}" y="186" font-size="11" fill="var(--mu)" text-anchor="middle">${g===1?k+':00':rng(k)}</text>`:'').join('');
+ return `<div class="hd2"><h2>${g===1?'Consumo por hora, hoy (L)':`Consumo cada ${g} h, hoy (L)`}</h2><div class="sg" role="group" aria-label="Intervalo del gráfico">${[1,3,6].map(v=>`<button class="${v===g?'on':''}" data-a="gr" data-g="${v}" aria-pressed="${v===g}">${v} h</button>`).join('')}</div></div>
+<svg viewBox="0 0 620 196" width="100%" role="img" aria-label="Consumo de agua de hoy por intervalo">${grid}${bars}${xl}</svg><p class="cap">Distribución horaria estimada a partir de consumos simulados; no son lecturas históricas de sensores. Borde punteado: intervalo en curso.</p>`}
+V.Inicio=()=>{const o=an.filter(open),ve=an.filter(venc),tot=med.reduce((s,m)=>s+m.l,0),c=p=>o.filter(a=>a.p===p).length,avg=S.res.reduce((a,b)=>a+b,0)/S.res.length,mx=Math.max(...med.map(m=>m.l));
+const mb=[...med].sort((a,b)=>b.l-a.l).map(m=>`<div style="margin:0 0 12px"><div style="display:flex;justify-content:space-between;gap:8px;font-size:13px"><span><b>${m.id}</b> · ${m.n}</span><span>${L(m.l)} L</span></div><div class="bar"><i style="width:${m.l/mx*100}%;${m.f?'background:var(--wi)':''}"></i></div></div>`).join('');
+return `<h1>Inicio</h1>${ve.length?`<div class="bn"><b>Atención:</b> hay ${ve.length} anomalía(s) vencida(s) sin asignar. ${S.rol==='Administrador'?'<a data-a="go" data-v="Anomalías" data-est="Detectada">Asignarla ahora</a>':''}</div>`:''}
+<div class="g"><div class="c k"><b>${L(tot)} L</b><span>Consumo simulado de hoy en los medidores</span></div>
+<div class="c k"><b>${o.length}</b><span>Anomalías abiertas: ${c('Alta')} Alta, ${c('Media')} Media, ${c('Baja')} Baja</span></div>
+<div class="c k"><b>${avg.toFixed(1).replace('.',',')} h</b><span>Tiempo medio de atención (muestra simulada)</span></div>
+<div class="c k"><b>${med.filter(m=>m.f).length} de ${med.length}</b><span>Medidores con falla activa</span></div></div>
+<div class="ig"><div class="c" id="cw">${consumoCard()}</div><div class="c"><h2>Consumo por medidor, hoy</h2>${mb}<p class="cap">Barra vino: medidor con falla activa.</p></div></div>
+<div class="c"><h2>Anomalías recientes</h2>${tbl(an.filter(mine).sort((a,b)=>b.at-a.at).slice(0,5))}</div>`};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a="gr"]');if(!t)return;S.gr=+t.dataset.g;const w=$('#cw');if(w)w.innerHTML=consumoCard()});
+
+/* ---------- Mapa: más compacto, mapa a la izquierda y detalle a la derecha en PC ---------- */
+V.Mapa=()=>{const m=mn(S.mid),ord={Alta:0,Media:1,Baja:2},oa=an.filter(a=>a.m===m.id&&open(a)).sort((a,b)=>ord[a.p]-ord[b.p]),la=oa[0]||an.filter(a=>a.m===m.id).sort((a,b)=>b.at-a.at)[0];
+const pins=med.map(x=>{const o=an.filter(a=>a.m===x.id&&open(a)).sort((a,b)=>ord[a.p]-ord[b.p]),c=o.length?{Alta:'var(--wi)',Media:'var(--am)',Baja:'var(--ok)'}[o[0].p]:'var(--ok)',p=PO[x.id];
+return `<button class="pin ${o.length?'al':''} ${x.id===S.mid?'sel':''}" data-a="pin" data-id="${x.id}" style="left:${p[0]}%;top:${p[1]}%;--c:${c}" title="${x.n}">${o.length||'✓'}</button><span class="pt" style="left:${p[0]}%;top:${p[1]}%">${x.id}</span>`}).join('');
+return `<h1>Mapa</h1><div class="mg"><div class="c"><div class="mp"><img src="${MAPIMG}" alt="Esquema ilustrativo de cinco zonas de monitoreo; no es un plano oficial del campus">${pins}</div><p class="cap">Ubicaciones ilustrativas para el prototipo; sustituya el fondo por el plano validado del campus.</p><div class="lgd"><span><i style="background:var(--wi)"></i>Anomalía alta</span><span><i style="background:var(--am)"></i>Media</span><span><i style="background:var(--ok)"></i>Baja o sin anomalías (✓)</span><span style="color:var(--mu)">El número indica las anomalías abiertas del medidor.</span></div></div>
+<div class="c"><h2>${m.n} · ${m.id}</h2><p>${m.z} · ${L(m.l)} L hoy · <span class="st ${m.f?'no':'ok'}">${m.f?'En falla':'Normal'}</span></p>${chart(m,la)}<h2 style="margin-top:14px">Anomalías abiertas</h2>${oa.length?tbl(oa):'<p style="color:var(--mu)">Sin anomalías abiertas: el consumo está dentro del rango normal.</p>'}</div></div>`};
+
+/* ---------- Asistente inteligente (local, con datos simulados) ---------- */
+NAV.Administrador.push('Asistente');
+const NR=t=>' '+String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\- ]/g,' ').replace(/\s+/g,' ').trim()+' ';
+const nA=n=>`${n} anomalía(s)`;
+const ASIS={
+ zonas(){const z={};med.forEach(m=>{(z[m.z]=z[m.z]||{t:0,a:0,ms:[]}).ms.push(m.id)});an.forEach(a=>{const o=z[mn(a.m).z];o.t++;if(open(a))o.a++});return z},
+ edificioMasAnomalias(){const l=Object.entries(ASIS.zonas()).sort((a,b)=>b[1].t-a[1].t||b[1].a-a[1].a);if(!l[0][1].t)return 'Actualmente no hay anomalías registradas en ningún edificio.';
+  const top=l.filter(x=>x[1].t===l[0][1].t&&x[1].a===l[0][1].a);
+  return `Conforme a los datos disponibles, ${top.length>1?'los edificios con más anomalías son':'el edificio con más anomalías es'} ${top.map(x=>x[0]).join(' y ')}, con ${nA(l[0][1].t)} registrada(s), de las cuales ${l[0][1].a} permanece(n) abierta(s).\n\nDetalle por zona:\n`+l.map(x=>`• ${x[0]}: ${x[1].t} en total, ${x[1].a} abierta(s) (${x[1].ms.join(', ')})`).join('\n')},
+ medidorMasAnomalias(){const l=med.map(m=>({m,t:an.filter(a=>a.m===m.id).length,a:an.filter(a=>a.m===m.id&&open(a)).length})).sort((a,b)=>b.t-a.t||b.a-a.a),top=l.filter(x=>x.t===l[0].t&&x.a===l[0].a);
+  return `El medidor con más anomalías registradas ${top.length>1?'son':'es'} ${top.map(x=>`${x.m.id} (${x.m.n})`).join(' y ')}, con ${nA(l[0].t)}, ${l[0].a} abierta(s).\n\nDetalle:\n`+l.map(x=>`• ${x.m.id}: ${x.t} en total, ${x.a} abierta(s)`).join('\n')},
+ trabajadorMasPendientes(){const l=tr.map(t=>({t,n:ld(t)})).sort((a,b)=>b.n-a.n||a.t.id-b.t.id),sin=an.filter(a=>open(a)&&!a.t).length,det=l.map(x=>`• ${x.t.n}: ${x.n} caso(s) pendiente(s)`).join('\n')+(sin?`\n• Sin asignar: ${sin} caso(s)`:'');
+  if(!l[0].n)return `Actualmente ningún trabajador tiene casos pendientes.${sin?` Existen ${sin} caso(s) sin asignar.`:''}`;
+  const top=l.filter(x=>x.n===l[0].n);return `${top.length>1?'Los trabajadores con más casos pendientes son':'El trabajador con más casos pendientes es'} ${top.map(x=>x.t.n).join(' y ')}, con ${l[0].n} caso(s) abierto(s) ${top.length>1?'cada uno':''}.\n\nDetalle:\n${det}`},
+ trabajadorPorNombre(n){const t=tr.find(x=>n.includes(x.n.split(' ')[0].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''))||n.includes(x.n.split(' ')[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')));if(!t)return null;
+  const mis=an.filter(a=>a.t===t.id&&open(a));return `${t.n}: ${!t.on?'no disponible':av(t)?'disponible en este momento':'fuera de turno'} (turno de ${t.d}:00 a ${t.h}:00). Tiene ${mis.length} caso(s) abierto(s)${mis.length?':\n'+mis.map(a=>`• Anomalía ${a.id} · ${a.m} · prioridad ${a.p.toLowerCase()} · ${a.e}`).join('\n'):'.'}`},
+ trabajadoresDisponibles(){const d=tr.filter(av);return d.length?`En este momento ${d.length===1?'está disponible':'están disponibles'}: ${d.map(t=>`${t.n} (turno ${t.d}:00 a ${t.h}:00, ${ld(t)} caso(s))`).join('; ')}.`:'En este momento no hay trabajadores disponibles dentro de su turno.'},
+ anomaliasAbiertas(){const o=an.filter(open),c=p=>o.filter(a=>a.p===p).length,e=s=>o.filter(a=>a.e===s).length;return `Hay ${o.length} anomalía(s) abierta(s): ${c('Alta')} de prioridad alta, ${c('Media')} media y ${c('Baja')} baja.\nPor estado: ${e('Detectada')} detectada(s), ${e('Asignada')} asignada(s) y ${e('En atención')} en atención.`},
+ prioridadAlta(){const o=an.filter(a=>open(a)&&a.p==='Alta');return o.length?`Hay ${o.length} anomalía(s) abierta(s) de prioridad alta:\n`+o.map(a=>`• N.° ${a.id} · ${a.m} · ${a.e} · ${wk(a.t)}`).join('\n'):'No hay anomalías abiertas de prioridad alta.'},
+ sinAsignar(){const s=an.filter(a=>a.e==='Detectada'),v=s.filter(venc);return s.length?`Hay ${s.length} anomalía(s) detectada(s) sin atender, de las cuales ${v.length} está(n) vencida(s):\n`+s.map(a=>`• N.° ${a.id} · ${a.m} · prioridad ${a.p.toLowerCase()}${venc(a)?' · vencida':''}`).join('\n'):'No hay anomalías pendientes de asignación.'},
+ medidoresEnFalla(){const f=med.filter(m=>m.f);return f.length?`${f.length} de ${med.length} medidores presenta(n) falla activa:\n`+f.map(m=>`• ${m.id} · ${m.n} (${m.z}): ${an.filter(a=>a.m===m.id&&open(a)).length} anomalía(s) abierta(s)`).join('\n'):'Ningún medidor presenta fallas activas.'},
+ listaMedidores(){return `La plataforma monitorea ${med.length} medidores:\n`+med.map(m=>`• ${m.id} · ${m.n} (${m.z}): ${m.f?'en falla':'normal'}, ${L(m.l)} L hoy`).join('\n')},
+ estadoMedidor(n){const k=(n.match(/med-?([0-9]{3})/)||[])[1],m=k&&mn('MED-'+k);if(!m)return null;const oa=an.filter(a=>a.m===m.id&&open(a));
+  return `${m.id} · ${m.n} (${m.z}): ${m.f?'en falla':'funcionamiento normal'}. Consumo de hoy: ${L(m.l)} L. Anomalías abiertas: ${oa.length}${oa.length?':\n'+oa.map(a=>`• N.° ${a.id} · prioridad ${a.p.toLowerCase()} · ${a.e} · ${wk(a.t)}`).join('\n'):'.'}`},
+ medidorMayorConsumo(){const l=[...med].sort((a,b)=>b.l-a.l);return `El medidor con mayor consumo hoy es ${l[0].id} (${l[0].n}), con ${L(l[0].l)} L.\n\nRanking:\n`+l.map((m,i)=>`${i+1}. ${m.id}: ${L(m.l)} L`).join('\n')},
+ consumoTotal(){const t=med.reduce((s,m)=>s+m.l,0);return `El consumo acumulado de hoy en los ${med.length} medidores es de ${L(t)} L.`},
+ tiempoAtencion(){const a=S.res.reduce((x,y)=>x+y,0)/S.res.length;return `El tiempo medio de atención de la muestra simulada es de ${a.toFixed(1).replace('.',',')} horas.`},
+ resumenGeneral(){const o=an.filter(open),t=med.reduce((s,m)=>s+m.l,0),f=med.filter(m=>m.f).length,sin=an.filter(a=>a.e==='Detectada').length;
+  return `Resumen general:\n• Consumo de hoy: ${L(t)} L.\n• Anomalías abiertas: ${o.length} (${o.filter(a=>a.p==='Alta').length} de prioridad alta).\n• Medidores con falla activa: ${f} de ${med.length}.\n• Anomalías sin asignar: ${sin}.\n• Trabajadores disponibles ahora: ${tr.filter(av).length} de ${tr.length}.`}
+};
+function asisResponder(q){
+ const K=window.ASISTENTE_KB;
+ if(!K)return{t:'No se encontró la base de conocimiento (asistente-base.js). Verifique que el archivo esté en la misma carpeta que index.html.',e:'Fuera de Alcance',f:'N/A'};
+ const n=NR(q),rx=l=>new RegExp(l.join('|'));
+ if(rx(K.bloqueo.jailbreak).test(n))return{t:K.mensajes.jailbreak,e:'Intento de Jailbreak',f:'N/A'};
+ if(rx(K.bloqueo.knowhow).test(n))return{t:K.mensajes.knowhow,e:'Fuera de Alcance',f:'N/A'};
+ let best=null,bs=0;
+ for(const en of K.entradas){let s=0,ok=true;for(const g of en.g){if(new RegExp(g).test(n))s++;else{ok=false;break}}if(ok){s+=en.p||0;if(s>bs){bs=s;best=en}}}
+ if(best){let t;try{t=best.fn?(ASIS[best.fn]?ASIS[best.fn](n):null):best.r}catch(x){t=null}if(t)return{t,e:'Éxito',f:best.fuente}}
+ return{t:K.mensajes.fuera,e:'Fuera de Alcance',f:'N/A'};
+}
+const msgHTML=m=>m.r==='u'?`<div class="cu">${esc(m.t)}</div>`:`<div class="cb"><div class="tx">${esc(m.t)}${m.e==='Éxito'&&m.f&&m.f!=='N/A'?`\n\nFuente: ${esc(m.f)}`:''}</div><hr><div class="au"><b>Registro de Auditoría Interna:</b><br>• Estado: ${esc(m.e)}<br>• Fuente consultada: ${esc(m.f)}</div></div>`;
+function chatInit(){if(!S.ch){const b=asisResponder('hola');S.ch=[{r:'b',t:b.t,e:b.e,f:b.f}]}}
+V.Asistente=()=>{chatInit();const sg=(window.ASISTENTE_KB&&ASISTENTE_KB.sugerencias)||[];
+return `<h1>Asistente inteligente</h1><div class="c chat"><div class="cm" id="cm" aria-live="polite">${S.ch.map(msgHTML).join('')}</div><div class="chips">${sg.map(s=>`<button class="b" data-a="chip">${esc(s)}</button>`).join('')}</div><div class="cin"><input id="ci" placeholder="Escriba su consulta sobre medidores, anomalías o trabajadores…" autocomplete="off" aria-label="Consulta al asistente"><button class="b p" data-a="chat">Enviar</button></div><div><button class="b" data-a="chatclr" style="font-size:12px;padding:4px 10px">Limpiar conversación</button></div></div>`};
+function asisEnviar(q){q=(q||'').trim();if(!q)return;chatInit();S.ch.push({r:'u',t:q});const b=asisResponder(q);S.ch.push({r:'b',t:b.t,e:b.e,f:b.f});
+ const cm=$('#cm');if(cm){cm.innerHTML=S.ch.map(msgHTML).join('');cm.scrollTop=cm.scrollHeight}const i=$('#ci');if(i){i.value='';i.focus()}}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a="chat"],[data-a="chip"],[data-a="chatclr"]');if(!t)return;
+ if(t.dataset.a==='chat')asisEnviar($('#ci').value);else if(t.dataset.a==='chip')asisEnviar(t.textContent);else{S.ch=null;render()}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ci')asisEnviar(e.target.value)});
 </script>
 </body>
 </html>
