@@ -411,7 +411,8 @@ ASIS.trabajadoresLista=()=>`Se registran ${tr.length} trabajadores en la simulac
 ASIS.anomaliaReciente=()=>{const a=[...an].sort((a,b)=>b.at-a.at)[0];return a?`La anomalía más reciente es la N.° ${a.id}, del medidor ${a.m}, detectada ${F(a.at)}. Prioridad ${a.p}, estado ${a.e}.`:'No hay anomalías registradas.'};
 ASIS.anomaliaAntigua=()=>{const a=an.filter(open).sort((a,b)=>a.at-b.at)[0];return a?`La anomalía abierta más antigua es la N.° ${a.id} (${a.m}), detectada ${F(a.at)}, en estado ${a.e}, prioridad ${a.p}.`:'No hay anomalías abiertas.'};
 ASIS.estadisticasEstados=()=>`Distribución de los ${an.length} registros simulados:\n`+['Detectada','Asignada','En atención','Resuelta'].map(e=>`• ${e}: ${an.filter(a=>a.e===e).length}`).join('\n');
-const msgHTML=m=>m.r==='u'?`<div class="cu">${esc(m.t)}</div>`:`<div class="cb"><div class="tx">${esc(m.t)}${m.e==='Éxito'&&m.f&&m.f!=='N/A'?`\n\nFuente: ${esc(m.f)}`:''}</div><hr><div class="au"><b>Registro de Auditoría Interna:</b><br>• Estado: ${esc(m.e)}<br>• Fuente consultada: ${esc(m.f)}</div></div>`;
+const fuenteChat=f=>f==='index.html (datos simulados)'?'N/A':(f||'N/A');
+const msgHTML=m=>m.r==='u'?`<div class="cu">${esc(m.t)}</div>`:`<div class="cb"><div class="tx">${esc(m.t)}${m.e==='Éxito'&&fuenteChat(m.f)!=='N/A'?`\n\nFuente: ${esc(fuenteChat(m.f))}`:''}</div><hr><div class="au"><b>Registro de Auditoría Interna:</b><br>• Estado: ${esc(m.e)}<br>• Fuente consultada: ${esc(fuenteChat(m.f))}</div></div>`;
 function chatInit(){if(!S.ch){const b=asisResponder('hola');S.ch=[{r:'b',t:b.t,e:b.e,f:b.f,at:Date.now()}]}}
 let chatTimer=null;
 function dibujarChat(){const cm=$('#cm');if(cm){cm.innerHTML=S.ch.map(msgHTML).join('')+(S.chatEsperando?'<div class="chat-wait" role="status"><span>El asistente está escribiendo</span><span class="chat-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>':'');cm.scrollTop=cm.scrollHeight}}
@@ -429,7 +430,7 @@ function generarPDFLocal(){chatInit();const fecha=new Date().toLocaleString('es-
  'Conversacion y fuentes consultadas',
  '------------------------------------------------------------'
  ];
- S.ch.forEach((m,i)=>{lineas.push('');lineas.push((m.r==='u'?'PREGUNTA':'RESPUESTA')+' '+(i+1)+' - '+new Date(m.at||Date.now()).toLocaleString('es-CO'));lineas.push(...String(m.t).split(/\n/));if(m.r!=='u'){lineas.push('Estado de auditoria: '+(m.e||'N/A'));lineas.push('Fuente: '+(m.f||'N/A'));}});
+ S.ch.forEach((m,i)=>{lineas.push('');lineas.push((m.r==='u'?'PREGUNTA':'RESPUESTA')+' '+(i+1)+' - '+new Date(m.at||Date.now()).toLocaleString('es-CO'));lineas.push(...String(m.t).split(/\n/));if(m.r!=='u'){lineas.push('Estado de auditoria: '+(m.e||'N/A'));if(fuenteChat(m.f)!=='N/A')lineas.push('Fuente: '+fuenteChat(m.f));}});
 
  // Helvetica /WinAnsiEncoding; convertir caracteres incompatibles sin romper el PDF.
  const latin=s=>String(s).replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/[\u2013\u2014]/g,'-').replace(/[\u2022]/g,'-').replace(/[^\x00-\xff]/g,'?');
