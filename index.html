@@ -97,6 +97,21 @@ textarea{font:inherit;border-radius:10px;border:1px solid var(--ln);background:v
 .au{font-size:12px;color:var(--mu);line-height:1.5}
 .chips{display:flex;gap:6px;flex-wrap:wrap}.chips .b{font-size:13px;padding:5px 11px;border-radius:99px;font-weight:500}
 .cin{display:flex;gap:8px}.cin input{flex:1;min-width:0}
+
+/* Asistente mejorado: animación y exportación PDF local */
+.chat-tools{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:9px}
+.chat-tools .b{font-size:13px}
+.chat-wait{display:flex;align-items:center;gap:9px;color:var(--mu);font-size:13px;padding:6px 3px}
+.chat-dots{display:inline-flex;gap:4px;align-items:center}
+.chat-dots i{height:7px;width:7px;border-radius:50%;background:var(--ac);animation:chatpulse 1s infinite ease-in-out;opacity:.35}
+.chat-dots i:nth-child(2){animation-delay:.15s}.chat-dots i:nth-child(3){animation-delay:.3s}
+@keyframes chatpulse{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-5px);opacity:1}}
+.chat-wait[hidden]{display:none}
+.chat-catalog{max-height:250px;overflow:auto;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--pn)}
+.chat-catalog button{display:block;text-align:left;width:100%;font-size:12px;border:0;border-bottom:1px solid var(--ln);border-radius:0;padding:7px 4px;background:transparent;color:var(--ink);cursor:pointer}
+.chat-catalog button:hover{color:var(--wit)}
+.chat.c{width:100%}
+@media print{body{background:white!important}.app,.lg,.dr,#toast{display:none!important}}
 </style>
 </head>
 <body>
@@ -372,20 +387,67 @@ function asisResponder(q){
  const n=NR(q),rx=l=>new RegExp(l.join('|'));
  if(rx(K.bloqueo.jailbreak).test(n))return{t:K.mensajes.jailbreak,e:'Intento de Jailbreak',f:'N/A'};
  if(rx(K.bloqueo.knowhow).test(n))return{t:K.mensajes.knowhow,e:'Fuera de Alcance',f:'N/A'};
+ // Las cien preguntas propuestas tienen prioridad sobre las coincidencias amplias por palabras clave.
+ const exact=(K.preguntasFrecuentes||[]).find(x=>NR(x.pregunta)===n);
+ if(exact&&typeof ASIS[exact.fn]==='function'){
+  try{const t=ASIS[exact.fn](n);if(t)return{t,e:'Éxito',f:exact.fuente}}catch(_e){}
+ }
  let best=null,bs=0;
- for(const en of K.entradas){let s=0,ok=true;for(const g of en.g){if(new RegExp(g).test(n))s++;else{ok=false;break}}if(ok){s+=en.p||0;if(s>bs){bs=s;best=en}}}
- if(best){let t;try{t=best.fn?(ASIS[best.fn]?ASIS[best.fn](n):null):best.r}catch(x){t=null}if(t)return{t,e:'Éxito',f:best.fuente}}
+ for(const en of K.entradas){let score=0,ok=true;for(const g of en.g){if(new RegExp(g).test(n))score++;else{ok=false;break}}if(ok){score+=en.p||0;if(score>bs){bs=score;best=en}}}
+ if(best){let t;try{t=best.fn?(ASIS[best.fn]?ASIS[best.fn](n):null):best.r}catch(_e){t=null}if(t)return{t,e:'Éxito',f:best.fuente}}
  return{t:K.mensajes.fuera,e:'Fuera de Alcance',f:'N/A'};
 }
+// Consultas adicionales: solo leen el estado simulado que ya maneja la plataforma.
+ASIS.medidorMenorConsumo=()=>{const l=[...med].sort((a,b)=>a.l-b.l);return `El medidor con menor consumo registrado hoy es ${l[0].id} (${l[0].n}), con ${L(l[0].l)} L.`};
+ASIS.promedioConsumo=()=>`El promedio de consumo acumulado hoy por medidor es de ${L(med.reduce((s,m)=>s+m.l,0)/med.length)} L en los ${med.length} medidores simulados.`;
+ASIS.medidoresNormales=()=>{const l=med.filter(m=>!an.some(a=>a.m===m.id&&open(a)));return l.length?`${l.length} medidor(es) sin anomalías abiertas: ${l.map(m=>`${m.id} (${m.n})`).join('; ')}.`:'Todos los medidores tienen al menos una anomalía abierta.'};
+ASIS.anomaliasResueltas=()=>{const l=an.filter(a=>a.e==='Resuelta').sort((a,b)=>(b.h.Resuelta||b.at)-(a.h.Resuelta||a.at));return l.length?`Hay ${l.length} anomalía(s) resuelta(s) en el registro simulado:\n`+l.map(a=>`• N.° ${a.id} · ${a.m} · ${wk(a.t)}`).join('\n'):'No hay anomalías resueltas en el registro.'};
+ASIS.listaPrioridad=p=>{const l=an.filter(a=>open(a)&&a.p===p);return l.length?`Hay ${l.length} anomalía(s) abierta(s) de prioridad ${p.toLowerCase()}:\n`+l.map(a=>`• N.° ${a.id} · ${a.m} · ${a.e} · ${wk(a.t)}`).join('\n'):`No hay anomalías abiertas de prioridad ${p.toLowerCase()}.`};
+ASIS.prioridadMedia=()=>ASIS.listaPrioridad('Media');
+ASIS.prioridadBaja=()=>ASIS.listaPrioridad('Baja');
+ASIS.enAtencion=()=>{const l=an.filter(a=>a.e==='En atención');return l.length?`${l.length} caso(s) en atención:\n`+l.map(a=>`• N.° ${a.id} · ${a.m} · ${wk(a.t)}`).join('\n'):'No hay anomalías en atención.'};
+ASIS.asignadas=()=>{const l=an.filter(a=>a.e==='Asignada');return l.length?`${l.length} caso(s) asignado(s), pendiente(s) de iniciar atención:\n`+l.map(a=>`• N.° ${a.id} · ${a.m} · ${wk(a.t)}`).join('\n'):'No hay anomalías en estado Asignada.'};
+ASIS.trabajadoresLista=()=>`Se registran ${tr.length} trabajadores en la simulación:\n`+tr.map(t=>`• ${t.n}: turno ${t.d}:00 a ${t.h}:00; ${t.on?'activo':'no disponible'}; ${ld(t)} caso(s) abierto(s)`).join('\n');
+ASIS.anomaliaReciente=()=>{const a=[...an].sort((a,b)=>b.at-a.at)[0];return a?`La anomalía más reciente es la N.° ${a.id}, del medidor ${a.m}, detectada ${F(a.at)}. Prioridad ${a.p}, estado ${a.e}.`:'No hay anomalías registradas.'};
+ASIS.anomaliaAntigua=()=>{const a=an.filter(open).sort((a,b)=>a.at-b.at)[0];return a?`La anomalía abierta más antigua es la N.° ${a.id} (${a.m}), detectada ${F(a.at)}, en estado ${a.e}, prioridad ${a.p}.`:'No hay anomalías abiertas.'};
+ASIS.estadisticasEstados=()=>`Distribución de los ${an.length} registros simulados:\n`+['Detectada','Asignada','En atención','Resuelta'].map(e=>`• ${e}: ${an.filter(a=>a.e===e).length}`).join('\n');
 const msgHTML=m=>m.r==='u'?`<div class="cu">${esc(m.t)}</div>`:`<div class="cb"><div class="tx">${esc(m.t)}${m.e==='Éxito'&&m.f&&m.f!=='N/A'?`\n\nFuente: ${esc(m.f)}`:''}</div><hr><div class="au"><b>Registro de Auditoría Interna:</b><br>• Estado: ${esc(m.e)}<br>• Fuente consultada: ${esc(m.f)}</div></div>`;
-function chatInit(){if(!S.ch){const b=asisResponder('hola');S.ch=[{r:'b',t:b.t,e:b.e,f:b.f}]}}
-V.Asistente=()=>{chatInit();const sg=(window.ASISTENTE_KB&&ASISTENTE_KB.sugerencias)||[];
-return `<h1>Asistente inteligente</h1><div class="c chat"><div class="cm" id="cm" aria-live="polite">${S.ch.map(msgHTML).join('')}</div><div class="chips">${sg.map(s=>`<button class="b" data-a="chip">${esc(s)}</button>`).join('')}</div><div class="cin"><input id="ci" placeholder="Escriba su consulta sobre medidores, anomalías o trabajadores…" autocomplete="off" aria-label="Consulta al asistente"><button class="b p" data-a="chat">Enviar</button></div><div><button class="b" data-a="chatclr" style="font-size:12px;padding:4px 10px">Limpiar conversación</button></div></div>`};
-function asisEnviar(q){q=(q||'').trim();if(!q)return;chatInit();S.ch.push({r:'u',t:q});const b=asisResponder(q);S.ch.push({r:'b',t:b.t,e:b.e,f:b.f});
- const cm=$('#cm');if(cm){cm.innerHTML=S.ch.map(msgHTML).join('');cm.scrollTop=cm.scrollHeight}const i=$('#ci');if(i){i.value='';i.focus()}}
-document.addEventListener('click',e=>{const t=e.target.closest('[data-a="chat"],[data-a="chip"],[data-a="chatclr"]');if(!t)return;
- if(t.dataset.a==='chat')asisEnviar($('#ci').value);else if(t.dataset.a==='chip')asisEnviar(t.textContent);else{S.ch=null;render()}});
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ci')asisEnviar(e.target.value)});
+function chatInit(){if(!S.ch){const b=asisResponder('hola');S.ch=[{r:'b',t:b.t,e:b.e,f:b.f,at:Date.now()}]}}
+let chatTimer=null;
+function dibujarChat(){const cm=$('#cm');if(cm){cm.innerHTML=S.ch.map(msgHTML).join('')+(S.chatEsperando?'<div class="chat-wait" role="status"><span>El asistente está escribiendo</span><span class="chat-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>':'');cm.scrollTop=cm.scrollHeight}}
+V.Asistente=()=>{chatInit();const K=window.ASISTENTE_KB||{},sg=K.sugerencias||[],total=(K.preguntasFrecuentes||[]).length;
+return `<h1>Asistente inteligente</h1><div class="c chat"><div class="chat-tools"><p style="font-size:13px;color:var(--mu);margin:0">Asistente local basado en reglas · ${total} preguntas sugeridas · Datos de demostración</p><button class="b" data-a="chatpdf" ${S.ch.length?'':'disabled'}>Descargar informe PDF</button></div><div class="cm" id="cm" aria-live="polite">${S.ch.map(msgHTML).join('')}${S.chatEsperando?'<div class="chat-wait" role="status"><span>El asistente está escribiendo</span><span class="chat-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>':''}</div><div class="chips">${sg.map(s=>`<button class="b" data-a="chip">${esc(s)}</button>`).join('')}</div><details><summary style="cursor:pointer;font-weight:600">Ver ${total} preguntas disponibles</summary><div class="chat-catalog">${(K.preguntasFrecuentes||[]).map((q,i)=>`<button data-a="pregunta" data-index="${i}">${i+1}. ${esc(q.pregunta)}</button>`).join('')}</div></details><div class="cin"><input id="ci" placeholder="Pregunte sobre medidores, consumo, anomalías o trabajadores…" autocomplete="off" aria-label="Consulta al asistente" ${S.chatEsperando?'disabled':''}><button class="b p" data-a="chat" ${S.chatEsperando?'disabled':''}>Enviar</button></div><div class="chat-tools"><button class="b" data-a="chatclr">Limpiar conversación</button><small style="color:var(--mu)">El informe incluye fecha, preguntas, respuestas y fuentes.</small></div></div>`};
+function asisEnviar(q){q=String(q||'').trim();if(!q||S.chatEsperando)return;chatInit();S.ch.push({r:'u',t:q,at:Date.now()});S.chatEsperando=true;const ci=$('#ci');if(ci)ci.value='';if(S.v==='Asistente')render();dibujarChat();
+ chatTimer=setTimeout(()=>{chatTimer=null;const r=asisResponder(q);S.ch.push({r:'b',t:r.t,e:r.e,f:r.f,at:Date.now()});S.chatEsperando=false;if(S.v==='Asistente'){render();dibujarChat();const i=$('#ci');if(i)i.focus()}},3000);
+}
+function limpiarChat(){if(chatTimer)clearTimeout(chatTimer);chatTimer=null;S.chatEsperando=false;S.ch=null;if(S.v==='Asistente')render()}
+// Generador PDF A4 autónomo: sin bibliotecas, CDN, servicio externo ni llamadas a API.
+function generarPDFLocal(){chatInit();const fecha=new Date().toLocaleString('es-CO');const lineas=[
+ 'PLATAFORMA HIDRICA - INFORME DEL ASISTENTE',
+ 'Universidad Central | Prototipo de datos simulados',
+ 'Generado: '+fecha,
+ 'Conversacion y fuentes consultadas',
+ '------------------------------------------------------------'
+ ];
+ S.ch.forEach((m,i)=>{lineas.push('');lineas.push((m.r==='u'?'PREGUNTA':'RESPUESTA')+' '+(i+1)+' - '+new Date(m.at||Date.now()).toLocaleString('es-CO'));lineas.push(...String(m.t).split(/\n/));if(m.r!=='u'){lineas.push('Estado de auditoria: '+(m.e||'N/A'));lineas.push('Fuente: '+(m.f||'N/A'));}});
+ lineas.push('');lineas.push('Aviso: datos simulados; este documento no acredita mediciones reales.');
+ // Helvetica /WinAnsiEncoding; convertir caracteres incompatibles sin romper el PDF.
+ const latin=s=>String(s).replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/[\u2013\u2014]/g,'-').replace(/[\u2022]/g,'-').replace(/[^\x00-\xff]/g,'?');
+ const wrap=(str,max=92)=>{const out=[];for(const raw of str.split('\n')){let t=latin(raw);if(!t){out.push('');continue}while(t.length>max){let j=t.lastIndexOf(' ',max);if(j<24)j=max;out.push(t.slice(0,j));t=t.slice(j).trimStart()}out.push(t)}return out};
+ const all=lineas.flatMap(l=>wrap(l)),per=48,pages=[];for(let i=0;i<all.length;i+=per)pages.push(all.slice(i,i+per));if(!pages.length)pages.push([]);
+ const escpdf=t=>latin(t).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)').replace(/[\r\n]/g,' ');
+ const objects=[''];const add=t=>{objects.push(t);return objects.length-1};const fontId=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+ const rootId=add('');const kids=[];
+ pages.forEach((lines,i)=>{let stream='BT /F1 10 Tf 46 795 Td 14 TL\n';lines.forEach((l,j)=>{stream+=`(${escpdf(l)}) Tj T*\n`});stream+='ET\n';const cId=add(`<< /Length ${stream.length} >>\nstream\n${stream}endstream`);const pId=add(`<< /Type /Page /Parent ${rootId} 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${cId} 0 R >>`);kids.push(pId)});
+ objects[rootId]=`<< /Type /Pages /Kids [${kids.map(k=>k+' 0 R').join(' ')}] /Count ${kids.length} >>`;
+ const catalog=add(`<< /Type /Catalog /Pages ${rootId} 0 R >>`);
+ let pdf='%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';const offsets=[0];for(let i=1;i<objects.length;i++){offsets[i]=pdf.length;pdf+=`${i} 0 obj\n${objects[i]}\nendobj\n`}
+ const start=pdf.length;pdf+=`xref\n0 ${objects.length}\n0000000000 65535 f \n`;for(let i=1;i<objects.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';pdf+=`trailer\n<< /Size ${objects.length} /Root ${catalog} 0 R >>\nstartxref\n${start}\n%%EOF`;
+ const bytes=Uint8Array.from(pdf,c=>c.charCodeAt(0)&255),url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})),a=document.createElement('a');a.href=url;a.download='Informe_Asistente_Hidrico_'+new Date().toISOString().slice(0,10)+'.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a="chat"],[data-a="chip"],[data-a="chatclr"],[data-a="chatpdf"],[data-a="pregunta"]');if(!t)return;
+ if(t.dataset.a==='chat')asisEnviar($('#ci')?.value);else if(t.dataset.a==='chip')asisEnviar(t.textContent);else if(t.dataset.a==='pregunta'){const q=window.ASISTENTE_KB?.preguntasFrecuentes?.[+t.dataset.index];if(q)asisEnviar(q.pregunta)}else if(t.dataset.a==='chatclr')limpiarChat();else if(t.dataset.a==='chatpdf')generarPDFLocal()});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ci'){e.preventDefault();asisEnviar(e.target.value)}});
 </script>
 </body>
 </html>
